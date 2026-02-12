@@ -180,6 +180,7 @@
 </div>
 
 <script>
+  const API_URL = "https://script.google.com/macros/s/AKfycbyCVOwhCtWJX2X7bQE9dVNKgtVt-TBt8HTioqFf9Xk1EY-XM8joKX9GS5a0gAzvwouZgw/exec";
 /* =========================
    OPTION B STORAGE (PERSIST)
    ========================= */
@@ -298,7 +299,34 @@ function loadJSON(key, fallback){
   }catch(e){ return fallback; }
 }
 
-let tasks = loadJSON(STORAGE.TASKS, null);
+let tasks = [];
+
+async function loadFromAPI() {
+  try {
+    const res = await fetch(API_URL + "?action=get");
+    const data = await res.json();
+
+    if (Array.isArray(data) && data.length > 1) {
+      tasks = data.slice(1).map(row => ({
+        id: row[0],
+        text: row[1],
+        tier: row[2],
+        status: row[3],
+        createdAt: row[4],
+        updatedAt: row[5],
+        snoozeUntil: row[6],
+        completed: row[7],
+        notes: row[8]
+      }));
+      renderAll();
+    }
+  } catch (err) {
+    console.error("API load failed:", err);
+  }
+}
+
+loadFromAPI();
+
 let touched = loadJSON(STORAGE.TOUCHED, {});
 let naggedDate = loadJSON(STORAGE.NAGGED, {});
 let snoozeUntil = loadJSON(STORAGE.SNOOZE, {});
@@ -720,4 +748,5 @@ setInterval(()=>{ buildSavageBanner(); }, 60000);
 </script>
 </body>
 </html>
+
 
