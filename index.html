@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>BSSC Task Tracker — Full (Tiers + Status + Savage + Add/Edit/Delete)</title>
+<title>BSSC Task Tracker — Cloud (Google Sheets)</title>
 
 <style>
   body{margin:0;background:#000;color:#fff;font-family:Verdana,Arial,sans-serif;}
@@ -19,9 +19,7 @@
     padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;
   }
   #addTaskBtn:hover{background:#2b7de9;}
-
   .wrap{max-width:1200px;margin:auto;padding:18px;}
-
   .note{
     border:1px solid #2a2a2a;background:#0d0d0d;border-radius:12px;
     padding:12px 14px;margin:0 0 14px;font-size:12px;line-height:1.45;opacity:.92;
@@ -80,7 +78,7 @@
   .iconBtn:hover{border-color:#aaa;}
   .danger:hover{border-color:#ff6b6b;}
 
-  /* ===== Hall of Shame ===== */
+  /* ===== Hall of Shame (DONE tasks) ===== */
   .hall{
     border:1px solid #333;border-radius:14px;padding:12px;background:#0b0b0b;
     margin-top:12px;
@@ -128,7 +126,7 @@
 <header>
   <div>
     <h1>BSSC Task Tracker</h1>
-    <div class="sub">Offline HTML • Saves on this device • Ready / Waiting / Done • Accountability enabled</div>
+    <div class="sub">Cloud (Google Sheets) • Works anywhere • Ready / Waiting / Done • Accountability enabled</div>
   </div>
   <button id="addTaskBtn">Add Task</button>
 </header>
@@ -148,7 +146,7 @@
   <div id="board"></div>
 
   <div class="hall">
-    <h3>Hall of Shame</h3>
+    <h3>Hall of Shame (DONE Tasks)</h3>
     <div id="logs"></div>
   </div>
 </div>
@@ -172,6 +170,9 @@
       <option value="done">DONE</option>
     </select>
 
+    <label for="notesInput">Notes (optional)</label>
+    <input id="notesInput" type="text" placeholder="Optional notes…" />
+
     <div id="modalActions">
       <button id="cancelBtn" type="button">Cancel</button>
       <button id="saveBtn" type="button">Save</button>
@@ -180,19 +181,14 @@
 </div>
 
 <script>
-  const API_URL = "https://script.google.com/macros/s/AKfycbyCVOwhCtWJX2X7bQE9dVNKgtVt-TBt8HTioqFf9Xk1EY-XM8joKX9GS5a0gAzvwouZgw/exec";
 /* =========================
-   OPTION B STORAGE (PERSIST)
+   CLOUD BACKEND (LOCKED)
    ========================= */
-const STORAGE = {
-  TASKS:  "BSSC_TASKS_V6",
-  TOUCHED:"BSSC_TIER_TOUCHED_V6",
-  NAGGED:"BSSC_TIER_NAGGEDDATE_V6",
-  SNOOZE:"BSSC_TIER_SNOOZE_V6",
-  LOGS:  "BSSC_SHAME_LOG_V6",
-  MSGHIST:"BSSC_MSG_HIST_V6"
-};
+const API_URL = "https://script.google.com/macros/s/AKfycbyCVOwhCtWJX2X7bQE9dVNKgtVt-TBt8HTioqFf9Xk1EY-XM8joKX9GS5a0gAzvwouZgw/exec";
 
+/* =========================
+   CONSTANTS / TIERS
+   ========================= */
 const DAY_MS = 24*60*60*1000;
 
 const TIERS = [
@@ -204,53 +200,9 @@ const TIERS = [
   { id:"parked",title:"⚪ Parked / Deprecated", cadenceDays:null }
 ];
 
-// Default tasks (your original tier list)
-const DEFAULT_TASKS = [
-  // Tier 1
-  ["tier1","Tax exempt form – complete"],
-  ["tier1","Complete VDACS form and get signatures"],
-  ["tier1","Mail off VDACS form"],
-  ["tier1","Tax exempt requests (Amazon, Walmart, Pedal, GotPrint)"],
-  ["tier1","Create fund request form for committee funds"],
-  ["tier1","Resolve Google Drive Low Storage"],
-  ["tier1","Fund form – backend"],
-  ["tier1","Redo sponsorship program"],
-  ["tier1","Alert for when website goes down"],
-  ["tier1","Website member-only access"],
-  // Tier 2
-  ["tier2","Missed meeting automation"],
-  ["tier2","Join BoneShakers script automation"],
-  ["tier2","Signal text messaging"],
-  ["tier2","Member-only spontaneous rides"],
-  ["tier2","Setup buddy meeting"],
-  ["tier2","Grant writing"],
-  // Tier 3
-  ["tier3","Action item: Pedal bikes"],
-  ["tier3","Lesson learned – Bikes for Tykes"],
-  ["tier3","Redo sponsorship program support materials (banners, popups)"],
-  ["tier3","Roll-up popup with sponsor on it"],
-  ["tier3","Retractable banner"],
-  // Tier 4
-  ["tier4","Back patch design"],
-  ["tier4","Past President patch – order 3"],
-  ["tier4","Claire patch order / pickup"],
-  ["tier4","Bike parking signs"],
-  // Tier 5
-  ["tier5","Our story bathroom pictures and poster at Gators"],
-  ["tier5","Appendix"],
-  ["tier5","Feb meeting w/ John Bishop"],
-  ["tier5","Jerry Lindsey"],
-  // Parked
-  ["parked","Google Voice mass text messages"],
-  ["parked","Bike night webpage"],
-  ["parked","Email signatures"],
-  ["parked","Portal access"],
-  ["parked","Ben Dillon Email set up"],
-  ["parked","Sponsor list"]
-];
-
 /* =========================
    SAVAGE MESSAGE ENGINE
+   (session-only; tasks persist in cloud)
    ========================= */
 const ROAST = {
   tier1: [
@@ -282,141 +234,144 @@ const ROAST = {
 };
 
 function todayKey(){ return new Date().toDateString(); }
-function stamp(){
-  const d=new Date();
-  const p=n=>String(n).padStart(2,"0");
-  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
-}
 function randPick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
 /* =========================
-   STATE LOAD
+   STATE (CLOUD)
    ========================= */
-function loadJSON(key, fallback){
-  try{
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  }catch(e){ return fallback; }
+let tasks = []; // {id,tier,text,status,createdAt,updatedAt,snoozeUntil,completedAt,notes}
+let naggedDate = {};   // tierId -> todayKey
+let msgHist = {};      // tierId -> [messages used recently]
+let lastPickTierId = null;
+
+/* =========================
+   API HELPERS
+   ========================= */
+async function apiGet(){
+  const url = API_URL + "?action=get&ts=" + Date.now();
+  const r = await fetch(url, { method:"GET" });
+  const txt = await r.text();
+  try{ return JSON.parse(txt); }
+  catch(e){ throw new Error("API did not return JSON. First 200 chars: " + txt.slice(0,200)); }
 }
 
-let tasks = [];
-
-async function loadFromAPI() {
-  try {
-    const res = await fetch(API_URL + "?action=get");
-    const data = await res.json();
-
-    if (Array.isArray(data) && data.length > 1) {
-      tasks = data.slice(1).map(row => ({
-        id: row[0],
-        text: row[1],
-        tier: row[2],
-        status: row[3],
-        createdAt: row[4],
-        updatedAt: row[5],
-        snoozeUntil: row[6],
-        completed: row[7],
-        notes: row[8]
-      }));
-      renderAll();
-    }
-  } catch (err) {
-    console.error("API load failed:", err);
-  }
-}
-
-loadFromAPI();
-
-let touched = loadJSON(STORAGE.TOUCHED, {});
-let naggedDate = loadJSON(STORAGE.NAGGED, {});
-let snoozeUntil = loadJSON(STORAGE.SNOOZE, {});
-let logs = loadJSON(STORAGE.LOGS, []);
-let msgHist = loadJSON(STORAGE.MSGHIST, {}); // tierId -> [recent message strings]
-
-// Bootstrap tasks once if empty
-// if(!tasks || !Array.isArray(tasks) || tasks.length === 0){
-//   tasks = DEFAULT_TASKS.map((t, idx)=>({
-//     id: "t_"+Date.now()+"_"+idx,
-//     tier: t[0],
-//     text: t[1],
-//     status: "ready",
-//     createdAt: Date.now()
-//   }));
-// }
-
-
-// Ensure touched exists for each tier (backdated so nags can work)
-(function initTouched(){
-  const now = Date.now();
-  TIERS.forEach(t=>{
-    if(t.cadenceDays == null) return;
-    if(!touched[t.id]){
-      touched[t.id] = now - (t.cadenceDays + 1)*DAY_MS;
-    }
+async function apiPost(action, payload){
+  const r = await fetch(API_URL, {
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({ action, ...payload })
   });
-})();
+  const txt = await r.text();
+  try{ return JSON.parse(txt); }
+  catch(e){ throw new Error("API POST did not return JSON. First 200 chars: " + txt.slice(0,200)); }
+}
 
-function saveAll(){
-  localStorage.setItem(STORAGE.TASKS, JSON.stringify(tasks));
-  localStorage.setItem(STORAGE.TOUCHED, JSON.stringify(touched));
-  localStorage.setItem(STORAGE.NAGGED, JSON.stringify(naggedDate));
-  localStorage.setItem(STORAGE.SNOOZE, JSON.stringify(snoozeUntil));
-  localStorage.setItem(STORAGE.LOGS, JSON.stringify(logs));
-  localStorage.setItem(STORAGE.MSGHIST, JSON.stringify(msgHist));
+function rowsToTasks(rows){
+  // Expected: [[headers...],[row...],...]
+  if(!Array.isArray(rows) || rows.length === 0) return [];
+  const header = rows[0].map(h => String(h||"").trim());
+  const col = {};
+  header.forEach((h,i)=> col[h] = i);
+
+  const get = (row, name) => {
+    const idx = col[name];
+    return (idx === undefined) ? "" : row[idx];
+  };
+
+  const out = [];
+  for(let i=1;i<rows.length;i++){
+    const row = rows[i];
+    if(!row || row.length===0) continue;
+
+    const id = String(get(row,"ID") || "").trim();
+    const text = String(get(row,"Task") || "").trim();
+    const tier = String(get(row,"Tier") || "tier1").trim();
+    const status = String(get(row,"Status") || "ready").trim().toLowerCase();
+
+    if(!id || !text) continue;
+
+    out.push({
+      id,
+      tier: tier || "tier1",
+      text,
+      status: ["ready","waiting","done"].includes(status) ? status : "ready",
+      createdAt: numOrNow(get(row,"Created")),
+      updatedAt: numOrNow(get(row,"Updated")),
+      snoozeUntil: numOrZero(get(row,"SnoozeUntil")),
+      completedAt: numOrZero(get(row,"Completed")),
+      notes: String(get(row,"Notes") || "")
+    });
+  }
+  return out;
+}
+
+function taskToRowObj(t){
+  // Must match sheet headers exactly
+  return {
+    ID: t.id,
+    Task: t.text,
+    Tier: t.tier,
+    Status: t.status,
+    Created: Number(t.createdAt || Date.now()),
+    Updated: Number(t.updatedAt || Date.now()),
+    SnoozeUntil: t.snoozeUntil ? Number(t.snoozeUntil) : "",
+    Completed: t.completedAt ? Number(t.completedAt) : "",
+    Notes: t.notes || ""
+  };
+}
+
+function numOrNow(v){
+  const n = Number(v);
+  return isFinite(n) && n>0 ? n : Date.now();
+}
+function numOrZero(v){
+  const n = Number(v);
+  return isFinite(n) && n>0 ? n : 0;
 }
 
 /* =========================
-   HELPERS
+   UI HELPERS
    ========================= */
-function touchTier(tierId){
-  touched[tierId] = Date.now();
-  saveAll();
-}
-
 function statusClass(status){
   if(status==="ready") return "status-ready";
   if(status==="waiting") return "status-waiting";
   return "status-done";
 }
-
 function taskTextClass(status){
   if(status==="done") return "taskText done";
   if(status==="waiting") return "taskText waiting";
   return "taskText";
 }
 
-/* =========================
-   SAVAGE CHECK (PHASE 3 + 4)
-   ========================= */
-function tierHasActionableWork(tierId){
-  return tasks.some(t => t.tier===tierId && t.status==="ready");
+function pickNonRepeatingMessage(tierId){
+  const pool = ROAST[tierId] || ["Do the thing."];
+  const hist = msgHist[tierId] || [];
+  const candidates = pool.filter(m => !hist.includes(m));
+  const chosen = candidates.length ? randPick(candidates) : randPick(pool);
+  msgHist[tierId] = [chosen].concat(hist).slice(0,6);
+  return chosen;
 }
 
 function daysSince(ms){
   return Math.floor((Date.now()-ms)/DAY_MS);
 }
-
-function recordLog(tierTitle, sinceDays, msg){
-  logs.unshift({
-    time: stamp(),
-    tier: tierTitle,
-    sinceDays,
-    msg
-  });
-  if(logs.length>250) logs = logs.slice(0,250);
+function tierHasActionableWork(tierId){
+  return tasks.some(t => t.tier===tierId && t.status==="ready");
 }
 
-function pickNonRepeatingMessage(tierId){
-  const pool = ROAST[tierId] || ["Do the thing."];
-  const hist = msgHist[tierId] || [];
-  // prefer a message not recently used
-  const candidates = pool.filter(m => !hist.includes(m));
-  const chosen = candidates.length ? randPick(candidates) : randPick(pool);
-  const nextHist = [chosen].concat(hist).slice(0,6);
-  msgHist[tierId] = nextHist;
-  return chosen;
+/* =========================
+   CLOUD LOAD / REFRESH
+   ========================= */
+async function reloadCloud(){
+  const rows = await apiGet(); // array-of-arrays
+  tasks = rowsToTasks(rows);
 }
 
+/* =========================
+   ACCOUNTABILITY ALERT (CLOUD)
+   - Looks at oldest UPDATED among READY tasks in each tier
+   - Ignores snoozed tasks
+   ========================= */
 function buildSavageBanner(){
   const zone = document.getElementById("savageZone");
   zone.innerHTML="";
@@ -425,14 +380,21 @@ function buildSavageBanner(){
   const now = Date.now();
   const today = todayKey();
 
-  // Build list of overdue tiers (excluding parked)
   const overdue = [];
   TIERS.forEach(t=>{
     if(t.cadenceDays == null) return;
-    if(snoozeUntil[t.id] && snoozeUntil[t.id] > now) return;
-    if(!tierHasActionableWork(t.id)) return; // only nag if READY work exists
-    const last = touched[t.id] || 0;
-    const since = daysSince(last);
+    // Only nag if READY work exists
+    const candidates = tasks.filter(x =>
+      x.tier===t.id &&
+      x.status==="ready" &&
+      (!x.snoozeUntil || x.snoozeUntil <= now)
+    );
+    if(!candidates.length) return;
+
+    // Oldest updated task represents "staleness" for that tier
+    candidates.sort((a,b)=>(a.updatedAt||0)-(b.updatedAt||0));
+    const oldest = candidates[0];
+    const since = daysSince(oldest.updatedAt || now);
     if(since >= t.cadenceDays){
       overdue.push({ tier:t, since });
     }
@@ -440,20 +402,16 @@ function buildSavageBanner(){
 
   if(!overdue.length) return;
 
-  // Show one banner per load cycle, prefer the most overdue tier
   overdue.sort((a,b)=> b.since - a.since);
   const pick = overdue[0];
   const tierId = pick.tier.id;
+  lastPickTierId = tierId;
 
-  // Only fire a new “daily” nag once per tier per day (but still show banner if already nagged today)
   let msg;
   if(naggedDate[tierId] !== today){
     msg = pickNonRepeatingMessage(tierId);
     naggedDate[tierId] = today;
-    recordLog(pick.tier.title, pick.since, msg);
-    saveAll();
   } else {
-    // already nagged today: still show something (use last used message if available)
     const hist = msgHist[tierId] || [];
     msg = hist[0] || pickNonRepeatingMessage(tierId);
   }
@@ -463,7 +421,7 @@ function buildSavageBanner(){
   card.className="savage";
   card.innerHTML = `
     <h3>Accountability Alert</h3>
-    <div class="meta"><b>${pick.tier.title}</b> • You haven’t touched this tier in <b>${pick.since}</b> day(s).</div>
+    <div class="meta"><b>${pick.tier.title}</b> • You haven’t moved READY work in <b>${pick.since}</b> day(s).</div>
     <p>${msg}</p>
     <div class="actions">
       <button type="button" data-snooze="1">Snooze 1 day</button>
@@ -472,12 +430,11 @@ function buildSavageBanner(){
       <button type="button" data-jump="1">Jump to Tier</button>
     </div>
   `;
+
   card.querySelectorAll("button[data-snooze]").forEach(btn=>{
-    btn.onclick=()=>{
+    btn.onclick=async ()=>{
       const d = Number(btn.getAttribute("data-snooze"));
-      snoozeUntil[tierId] = Date.now() + d*DAY_MS;
-      saveAll();
-      render();
+      await snoozeTier(tierId, d);
     };
   });
   card.querySelector("button[data-jump]").onclick=()=>{
@@ -486,6 +443,17 @@ function buildSavageBanner(){
   };
 
   zone.appendChild(card);
+}
+
+async function snoozeTier(tierId, days){
+  const until = Date.now() + days*DAY_MS;
+  const targets = tasks.filter(t => t.tier===tierId && t.status==="ready");
+  for(const t of targets){
+    t.snoozeUntil = until;
+    t.updatedAt = Date.now();
+    await apiPost("upsert", { task: taskToRowObj(t) });
+  }
+  await refresh();
 }
 
 /* =========================
@@ -508,12 +476,13 @@ function render(){
 
     card.innerHTML = `<h2>${tier.title}</h2><div class="tierHint">${hint}</div>`;
 
-const tierTasks = tasks
-  .filter(x => x.tier === tier.id)
-  .sort((a, b) => {
-    const order = { ready: 0, waiting: 1, done: 2 };
-    return order[a.status] - order[b.status];
-  });
+    const tierTasks = tasks
+      .filter(x => x.tier === tier.id)
+      .sort((a, b) => {
+        const order = { ready: 0, waiting: 1, done: 2 };
+        return order[a.status] - order[b.status];
+      });
+
     tierTasks.forEach(task=>{
       const row = document.createElement("div");
       row.className="row";
@@ -522,11 +491,12 @@ const tierTasks = tasks
       const cb = document.createElement("input");
       cb.type="checkbox";
       cb.checked = (task.status==="done");
-      cb.onchange = ()=>{
+      cb.onchange = async ()=>{
         task.status = cb.checked ? "done" : "ready";
-        touchTier(task.tier);
-        saveAll();
-        render();
+        task.updatedAt = Date.now();
+        task.completedAt = (task.status==="done") ? Date.now() : 0;
+        await apiPost("upsert", { task: taskToRowObj(task) });
+        await refresh();
       };
 
       // Text
@@ -544,11 +514,12 @@ const tierTasks = tasks
         status.appendChild(opt);
       });
       status.className = statusClass(task.status);
-      status.onchange = ()=>{
+      status.onchange = async ()=>{
         task.status = status.value;
-        touchTier(task.tier);
-        saveAll();
-        render();
+        task.updatedAt = Date.now();
+        task.completedAt = (task.status==="done") ? Date.now() : 0;
+        await apiPost("upsert", { task: taskToRowObj(task) });
+        await refresh();
       };
 
       // Move tier dropdown
@@ -560,13 +531,11 @@ const tierTasks = tasks
         if(task.tier===tt.id) opt.selected=true;
         move.appendChild(opt);
       });
-      move.onchange = ()=>{
-        const oldTier = task.tier;
+      move.onchange = async ()=>{
         task.tier = move.value;
-        touchTier(oldTier);
-        touchTier(task.tier);
-        saveAll();
-        render();
+        task.updatedAt = Date.now();
+        await apiPost("upsert", { task: taskToRowObj(task) });
+        await refresh();
       };
 
       // Edit / Delete buttons
@@ -585,20 +554,15 @@ const tierTasks = tasks
       delBtn.type="button";
       delBtn.textContent="🗑️";
       delBtn.title="Delete task";
-      delBtn.onclick=()=>{
+      delBtn.onclick=async ()=>{
         const ok = confirm("Delete this task?\n\n" + task.text);
         if(!ok) return;
-        tasks = tasks.filter(x=>x.id !== task.id);
-        touchTier(task.tier);
-        saveAll();
-        render();
+        await apiPost("delete", { id: task.id });
+        await refresh();
       };
 
       btnWrap.appendChild(editBtn);
       btnWrap.appendChild(delBtn);
-
-      // Spacer (for grid alignment)
-      const spacer = document.createElement("div");
 
       row.appendChild(cb);
       row.appendChild(text);
@@ -612,35 +576,50 @@ const tierTasks = tasks
     board.appendChild(card);
   });
 
-  renderLogs();
+  renderHallOfShame();
 }
 
 /* =========================
-   HALL OF SHAME
+   HALL OF SHAME = DONE TASKS (cloud)
    ========================= */
-function renderLogs(){
+function renderHallOfShame(){
   const el = document.getElementById("logs");
-  if(!logs.length){
-    el.innerHTML = `<div class="log">No shame logged yet. Suspiciously quiet.</div>`;
+  const done = tasks
+    .filter(t=>t.status==="done")
+    .sort((a,b)=>(b.completedAt||0)-(a.completedAt||0));
+
+  if(!done.length){
+    el.innerHTML = `<div class="log">No DONE tasks yet. Suspiciously quiet.</div>`;
     return;
   }
-  el.innerHTML = logs.map(l=>{
+
+  el.innerHTML = done.map(t=>{
+    const when = t.completedAt ? new Date(t.completedAt).toLocaleString() : "—";
     return `<div class="log">
-      <span class="pill">${l.time}</span>
-      <span class="pill">${l.tier}</span>
-      <span class="pill">${l.sinceDays}d</span>
-      ${l.msg}
+      <span class="pill">${when}</span>
+      <span class="pill">${t.tier}</span>
+      ${escapeHtml(t.text)}
     </div>`;
   }).join("");
 }
 
+function escapeHtml(s){
+  return String(s ?? "")
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
 /* =========================
-   ADD/EDIT MODAL + DELETE SUPPORT
+   ADD/EDIT MODAL
    ========================= */
 const modal = document.getElementById("modal");
 const modalTitle = document.getElementById("modalTitle");
 const modalError = document.getElementById("modalError");
 const taskInput = document.getElementById("taskInput");
+const notesInput = document.getElementById("notesInput");
 const tierSelect = document.getElementById("tierSelect");
 const statusSelect = document.getElementById("statusSelect");
 const cancelBtn = document.getElementById("cancelBtn");
@@ -669,12 +648,14 @@ function openModal(mode, task){
     modalTitle.textContent="Add Task";
     editTaskId = null;
     taskInput.value="";
+    notesInput.value="";
     tierSelect.value="tier1";
     statusSelect.value="ready";
   } else {
     modalTitle.textContent="Edit Task";
     editTaskId = task.id;
     taskInput.value = task.text;
+    notesInput.value = task.notes || "";
     tierSelect.value = task.tier;
     statusSelect.value = task.status;
   }
@@ -687,7 +668,7 @@ function closeModal(){
   modal.style.display="none";
 }
 
-function saveModal(){
+async function saveModal(){
   const text = (taskInput.value||"").trim();
   if(!text){
     modalError.textContent = "Type something. Telepathy isn’t enabled.";
@@ -696,31 +677,36 @@ function saveModal(){
     return;
   }
 
+  const now = Date.now();
+
   if(modalMode==="add"){
     const newTask = {
-      id: "t_"+Date.now()+"_"+Math.floor(Math.random()*100000),
+      id: "t_"+now+"_"+Math.floor(Math.random()*100000),
       tier: tierSelect.value,
       text,
       status: statusSelect.value,
-      createdAt: Date.now()
+      createdAt: now,
+      updatedAt: now,
+      snoozeUntil: 0,
+      completedAt: (statusSelect.value==="done") ? now : 0,
+      notes: (notesInput.value||"").trim()
     };
-    tasks.push(newTask);
-    touchTier(newTask.tier);
+    await apiPost("upsert", { task: taskToRowObj(newTask) });
   } else {
     const t = tasks.find(x=>x.id===editTaskId);
     if(t){
-      const oldTier = t.tier;
       t.text = text;
       t.tier = tierSelect.value;
       t.status = statusSelect.value;
-      touchTier(oldTier);
-      touchTier(t.tier);
+      t.notes = (notesInput.value||"").trim();
+      t.updatedAt = now;
+      t.completedAt = (t.status==="done") ? now : 0;
+      await apiPost("upsert", { task: taskToRowObj(t) });
     }
   }
 
-  saveAll();
   closeModal();
-  render();
+  await refresh();
 
   // Scroll to the relevant tier after save
   const dest = document.getElementById(tierSelect.value);
@@ -740,13 +726,23 @@ modal.addEventListener("click", (e)=>{
 });
 
 /* =========================
-   REMINDER TICK (keep it alive)
+   BOOT / REFRESH
    ========================= */
-render();
-// Re-check every 60 seconds while the page is open
+async function refresh(){
+  try{
+    await reloadCloud();
+    render();
+  } catch(err){
+    alert("Cloud load failed.\n\n" + err.message);
+    console.error(err);
+  }
+}
+
+// First load
+refresh();
+
+// Re-check banner every 60 seconds (UI only)
 setInterval(()=>{ buildSavageBanner(); }, 60000);
 </script>
 </body>
 </html>
-
-
