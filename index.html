@@ -293,7 +293,7 @@ function randPick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
    ========================= */
 async function loadFromServer(){
   try{
-    const res = await fetch("https://script.google.com/macros/s/AKfycbyCVOwhCtWJX2X7bQE9dVNKgtVt-TBt8HTioqFf9Xk1EY-XM8joKX9GS5a0gAzvwouZgw/exec");
+    https://script.google.com/macros/s/AKfycbyCVOwhCtWJX2X7bQE9dVNKgtVt-TBt8HTioqFf9Xk1EY-XM8joKX9GS5a0gAzvwouZgw/exec
     const data = await res.json();
 
 if (Array.isArray(data) && data.length) {
@@ -354,7 +354,8 @@ if(!tasks || !Array.isArray(tasks) || tasks.length === 0){
 })();
 
 async function saveAll(){
-  await fetch("https://script.google.com/macros/s/AKfycbyCVOwhCtWJX2X7bQE9dVNKgtVt-TBt8HTioqFf9Xk1EY-XM8joKX9GS5a0gAzvwouZgw/exec", {
+  await fetch("https://script.google.com/macros/s/AKfycbyCVOwhCtWJX2X7bQE9dVNKgtVt-TBt8HTioqFf9Xk1EY-XM8joKX9GS5a0gAzvwouZgw/exec
+", {
     method: "POST",
     body: new URLSearchParams({
       action: "saveAll",
@@ -746,6 +747,7 @@ setInterval(()=>{ buildSavageBanner(); }, 60000);
 </script>
 </body>
 </html>
+
 
 
 
