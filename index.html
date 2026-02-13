@@ -183,6 +183,14 @@
 /* =========================
    OPTION B STORAGE (PERSIST)
    ========================= */
+
+let tasks = [];
+let touched = {};
+let snoozeUntil = {};
+let naggedDate = {};
+let logs = [];
+let msgHist = {};
+  
 const STORAGE = {
   TASKS:  "BSSC_TASKS_V6",
   TOUCHED:"BSSC_TIER_TOUCHED_V6",
@@ -747,6 +755,7 @@ setInterval(()=>{ buildSavageBanner(); }, 60000);
 </script>
 </body>
 </html>
+
 
 
 
