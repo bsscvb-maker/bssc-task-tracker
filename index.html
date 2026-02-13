@@ -296,18 +296,22 @@ async function loadFromServer(){
     const res = await fetch("https://script.google.com/macros/s/AKfycbyCVOwhCtWJX2X7bQE9dVNKgtVt-TBt8HTioqFf9Xk1EY-XM8joKX9GS5a0gAzvwouZgw/exec");
     const data = await res.json();
 
-    if(Array.isArray(data) && data.length){
-      tasks = data;
-    } else {
-      console.warn("No tasks returned from server. Using defaults.");
-      tasks = DEFAULT_TASKS.map((t, idx)=>({
-        id: "t_"+Date.now()+"_"+idx,
-        tier: t[0],
-        text: t[1],
-        status: "ready",
-        createdAt: Date.now()
-      }));
-    }
+if (Array.isArray(data) && data.length) {
+  // Skip header row
+  const rows = data.slice(1);
+
+  tasks = rows.map(r => ({
+    id: r[0],
+    text: r[1],
+    tier: r[2],
+    status: r[3],
+    createdAt: r[4],
+    updatedAt: r[5],
+    snoozeUntil: r[6],
+    completedAt: r[7],
+    notes: r[8]
+  }));
+}
 
     render();
 
@@ -742,6 +746,7 @@ setInterval(()=>{ buildSavageBanner(); }, 60000);
 </script>
 </body>
 </html>
+
 
 
 
