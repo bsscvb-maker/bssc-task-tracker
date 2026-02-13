@@ -306,21 +306,10 @@ async function loadFromServer(){
     const res = await fetch("https://script.google.com/macros/s/AKfycbyCVOwhCtWJX2X7bQE9dVNKgtVt-TBt8HTioqFf9Xk1EY-XM8joKX9GS5a0gAzvwouZgw/exec=getAll");
     const data = await res.json();
 
-    if (Array.isArray(data) && data.length) {
-      const rows = data.slice(1); // skip header row
+if (Array.isArray(data)) {
+  tasks = data;
+}
 
-      tasks = rows.map(r => ({
-        id: r[0],
-        text: r[1],
-        tier: r[2],
-        status: r[3],
-        createdAt: r[4],
-        updatedAt: r[5],
-        snoozeUntil: r[6],
-        completedAt: r[7],
-        notes: r[8]
-      }));
-    }
 
     render();
 
@@ -757,6 +746,7 @@ setInterval(()=>{ buildSavageBanner(); }, 60000);
 </script>
 </body>
 </html>
+
 
 
 
