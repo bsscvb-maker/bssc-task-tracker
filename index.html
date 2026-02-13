@@ -6,118 +6,215 @@
 <title>BSSC Task Tracker — Cloud (Google Sheets)</title>
 
 <style>
-  body{margin:0;background:#000;color:#fff;font-family:Verdana,Arial,sans-serif;}
+  /* ===== Dense / Scratchpad Mode ===== */
+  :root{
+    --bg:#000;
+    --panel:#0b0b0b;
+    --panel2:#070707;
+    --line:#1e1e1e;
+    --line2:#2a2a2a;
+    --txt:#fff;
+    --muted:#bdbdbd;
+    --btn:#1a73e8;
+  }
+
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--txt);
+    font-family:Verdana,Arial,sans-serif;
+    font-size:12px;
+  }
+
   header{
-    display:flex;justify-content:space-between;align-items:center;
-    padding:16px 18px;border-bottom:1px solid #222;background:#050505;
-    position:sticky;top:0;z-index:50;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:8px 10px;
+    border-bottom:1px solid var(--line);
+    background:var(--panel2);
+    position:sticky;
+    top:0;
+    z-index:50;
   }
-  h1{margin:0;font-size:20px;}
-  .sub{opacity:.75;font-size:12px;margin-top:2px;}
+  h1{margin:0;font-size:14px;line-height:1;}
+  .sub{opacity:.75;font-size:11px;margin-top:3px;}
+
   #addTaskBtn{
-    background:#1a73e8;color:#fff;border:none;border-radius:10px;
-    padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;
+    background:var(--btn);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    padding:7px 10px;
+    font-size:12px;
+    font-weight:700;
+    cursor:pointer;
   }
-  #addTaskBtn:hover{background:#2b7de9;}
-  .wrap{max-width:1200px;margin:auto;padding:18px;}
+  #addTaskBtn:hover{filter:brightness(1.06);}
+
+  .wrap{max-width:1200px;margin:0 auto;padding:8px 10px;}
+
   .note{
-    border:1px solid #2a2a2a;background:#0d0d0d;border-radius:12px;
-    padding:12px 14px;margin:0 0 14px;font-size:12px;line-height:1.45;opacity:.92;
+    border:1px solid var(--line2);
+    background:var(--panel);
+    padding:8px 10px;
+    margin:0 0 8px;
+    border-radius:10px;
+    line-height:1.35;
+    font-size:11px;
+    opacity:.95;
   }
 
-  /* ===== Savage Banner ===== */
-  #savageZone{display:none;margin:0 0 14px;}
+  /* ===== Savage Banner (keep, but dense) ===== */
+  #savageZone{display:none;margin:0 0 8px;}
   .savage{
-    border:2px solid #7a0000;background:#2b0000;border-radius:12px;
-    padding:14px;
+    border:1px solid #7a0000;
+    background:#190000;
+    border-radius:10px;
+    padding:8px 10px;
   }
-  .savage h3{margin:0 0 6px;color:#ffb3b3;font-size:16px;}
-  .savage p{margin:6px 0;font-size:13px;line-height:1.4;}
-  .savage .meta{opacity:.85;font-size:12px;}
-  .savage .actions{margin-top:10px;}
+  .savage h3{margin:0 0 4px;color:#ffb3b3;font-size:12px;}
+  .savage p{margin:4px 0;font-size:12px;line-height:1.25;}
+  .savage .meta{opacity:.9;font-size:11px;}
+  .savage .actions{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;}
   .savage button{
-    background:#000;color:#fff;border:1px solid #555;border-radius:10px;
-    padding:7px 10px;margin-right:8px;cursor:pointer;font-size:12px;
+    background:#000;color:#fff;border:1px solid #444;border-radius:8px;
+    padding:5px 8px;cursor:pointer;font-size:11px;
   }
-  .savage button:hover{border-color:#aaa;}
+  .savage button:hover{border-color:#888;}
 
-  /* ===== Board ===== */
+  /* ===== Dense Tier Sections ===== */
   .tier{
-    border:1px solid #333;border-radius:14px;padding:14px;margin:0 0 16px;background:#111;
+    border:1px solid var(--line2);
+    background:var(--panel);
+    border-radius:10px;
+    margin:0 0 8px;
+    overflow:hidden;
   }
-  .tier h2{margin:0 0 10px;font-size:18px;}
-  .tier .tierHint{opacity:.75;font-size:12px;margin-bottom:10px;}
+
+  .tierHead{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:6px 10px;
+    background:#0a0a0a;
+    border-bottom:1px solid var(--line);
+  }
+  .tierTitle{
+    font-size:12px;
+    font-weight:800;
+    letter-spacing:.2px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .tierHint{
+    font-size:10px;
+    opacity:.7;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    text-align:right;
+  }
+
+  /* ===== Dense Row Grid ===== */
   .row{
     display:grid;
-    grid-template-columns: 28px 1fr 130px 230px 70px;
-    gap:26px;
+    grid-template-columns: 18px 1fr 86px 180px 64px;
+    gap:10px;
     align-items:center;
-    margin:8px 0;
+    padding:4px 10px;
+    border-bottom:1px solid #141414;
   }
-  input[type="checkbox"]{width:18px;height:18px;cursor:pointer;}
+  .row:last-child{border-bottom:none;}
+
+  input[type="checkbox"]{width:14px;height:14px;cursor:pointer;margin:0;}
   .taskText{
-    font-weight:600;font-size:13px;line-height:1.3;
+    font-weight:600;
+    font-size:12px;
+    line-height:1.2;
+    word-break:break-word;
   }
   .taskText.done{text-decoration:line-through;opacity:.45;}
   .taskText.waiting{opacity:.70;font-style:italic;}
 
   select, input[type="text"]{
-    background:#0f0f0f;color:#fff;border:1px solid #444;border-radius:10px;
-    padding:7px 10px;font-size:12px;
+    background:#0a0a0a;
+    color:#fff;
+    border:1px solid #333;
+    border-radius:8px;
+    padding:4px 6px;
+    font-size:11px;
+    height:26px;
   }
 
-  .status-ready{color:#ff4d4d;font-weight:800;}
-  .status-waiting{color:#ffd24d;font-weight:800;}
-  .status-done{color:#5cff5c;font-weight:800;}
+  .status-ready{color:#ff4d4d;font-weight:900;}
+  .status-waiting{color:#ffd24d;font-weight:900;}
+  .status-done{color:#5cff5c;font-weight:900;}
 
-  .btns{display:flex;gap:8px;justify-content:flex-end;}
+  .btns{display:flex;gap:6px;justify-content:flex-end;}
   .iconBtn{
-    background:#000;border:1px solid #555;color:#fff;border-radius:10px;
-    padding:7px 10px;cursor:pointer;font-size:12px;
+    background:#000;border:1px solid #444;color:#fff;border-radius:8px;
+    padding:4px 7px;cursor:pointer;font-size:11px;height:26px;
   }
-  .iconBtn:hover{border-color:#aaa;}
+  .iconBtn:hover{border-color:#888;}
   .danger:hover{border-color:#ff6b6b;}
 
-  /* ===== Hall of Shame (DONE tasks) ===== */
+  /* ===== Hall of Shame (dense) ===== */
   .hall{
-    border:1px solid #333;border-radius:14px;padding:12px;background:#0b0b0b;
-    margin-top:12px;
+    border:1px solid var(--line2);
+    border-radius:10px;
+    padding:8px 10px;
+    background:var(--panel);
+    margin-top:8px;
   }
-  .hall h3{margin:0 0 10px;}
-  .log{font-size:11px;opacity:.92;border-bottom:1px solid #222;padding:7px 0;}
+  .hall h3{margin:0 0 8px;font-size:12px;}
+  .log{
+    font-size:11px;
+    opacity:.92;
+    border-bottom:1px solid #141414;
+    padding:4px 0;
+    line-height:1.25;
+  }
+  .log:last-child{border-bottom:none;}
   .pill{
-    display:inline-block;padding:2px 7px;border:1px solid #444;border-radius:999px;
-    font-size:10px;margin-right:6px;opacity:.95;
+    display:inline-block;
+    padding:1px 6px;
+    border:1px solid #333;
+    border-radius:999px;
+    font-size:10px;
+    margin-right:6px;
+    opacity:.95;
   }
 
   /* ===== Modal ===== */
   #modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:999;}
   #modalBox{
-    width:390px;max-width:92vw;margin:110px auto;background:#111;border:1px solid #444;
-    border-radius:14px;padding:16px;
+    width:380px;max-width:92vw;margin:90px auto;background:#0b0b0b;border:1px solid #333;
+    border-radius:12px;padding:12px;
   }
-  #modalBox h3{margin:0 0 12px;}
-  #modalBox label{display:block;font-size:12px;opacity:.85;margin:8px 0 6px;}
-  #modalBox .error{
-    display:none;color:#ff6b6b;font-size:12px;margin:0 0 6px;
-  }
-  #modalActions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px;}
+  #modalBox h3{margin:0 0 10px;font-size:13px;}
+  #modalBox label{display:block;font-size:11px;opacity:.85;margin:8px 0 5px;}
+  #modalBox .error{display:none;color:#ff6b6b;font-size:11px;margin:0 0 6px;}
+  #modalActions{display:flex;gap:8px;justify-content:flex-end;margin-top:10px;}
   #modalActions button{
-    background:#000;color:#fff;border:1px solid #555;border-radius:10px;
-    padding:8px 12px;cursor:pointer;font-size:12px;
+    background:#000;color:#fff;border:1px solid #444;border-radius:8px;
+    padding:7px 10px;cursor:pointer;font-size:11px;
   }
-  #modalActions button:hover{border-color:#aaa;}
+  #modalActions button:hover{border-color:#888;}
 
-  /* Small screens */
+  /* Responsive: keep dense but not broken */
   @media(max-width:900px){
-    .row{grid-template-columns: 28px 1fr 120px 1fr 70px;}
+    .row{grid-template-columns: 18px 1fr 86px 1fr 64px;}
   }
   @media(max-width:650px){
-    .row{grid-template-columns: 28px 1fr;}
+    .row{grid-template-columns: 18px 1fr;}
     .row > *:nth-child(3),
     .row > *:nth-child(4),
     .row > *:nth-child(5){grid-column:2;}
     .btns{justify-content:flex-start;}
+    .tierHint{display:none;}
   }
 </style>
 </head>
@@ -126,7 +223,7 @@
 <header>
   <div>
     <h1>BSSC Task Tracker</h1>
-    <div class="sub">Cloud (Google Sheets) • Works anywhere • Ready / Waiting / Done • Accountability enabled</div>
+    <div class="sub">Dense scratchpad • Cloud (Google Sheets) • Ready / Waiting / Done</div>
   </div>
   <button id="addTaskBtn">Add Task</button>
 </header>
@@ -136,8 +233,9 @@
   <div class="note">
     <b>Statuses:</b>
     <span class="status-ready">READY</span> = actionable now •
-    <span class="status-waiting">WAITING</span> = blocked (pauses nagging) •
-    <span class="status-done">DONE</span> = finished (still visible, can undo)<br><br>
+    <span class="status-waiting">WAITING</span> = blocked •
+    <span class="status-done">DONE</span> = finished (still visible, can undo)
+    <br><br>
     <b>Nag cadence:</b> Tier 1 daily • Tier 2 daily • Tier 3 every other day • Tier 4 every 2 days • Tier 5 weekly
   </div>
 
@@ -202,7 +300,6 @@ const TIERS = [
 
 /* =========================
    SAVAGE MESSAGE ENGINE
-   (session-only; tasks persist in cloud)
    ========================= */
 const ROAST = {
   tier1: [
@@ -237,22 +334,29 @@ function todayKey(){ return new Date().toDateString(); }
 function randPick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
 /* =========================
-   STATE (CLOUD)
+   STATE
    ========================= */
-let tasks = []; // {id,tier,text,status,createdAt,updatedAt,snoozeUntil,completedAt,notes}
+let tasks = []; // normalized task objects
 let naggedDate = {};   // tierId -> todayKey
 let msgHist = {};      // tierId -> [messages used recently]
-let lastPickTierId = null;
 
 /* =========================
-   API HELPERS
+   API HELPERS (robust)
    ========================= */
 async function apiGet(){
   const url = API_URL + "?action=get&ts=" + Date.now();
   const r = await fetch(url, { method:"GET" });
   const txt = await r.text();
-  try{ return JSON.parse(txt); }
-  catch(e){ throw new Error("API did not return JSON. First 200 chars: " + txt.slice(0,200)); }
+  let parsed;
+  try { parsed = JSON.parse(txt); }
+  catch(e){
+    throw new Error("API did not return JSON. First 200 chars: " + txt.slice(0,200));
+  }
+
+  // Supports:
+  // 1) {success:true, tasks:[...]}
+  // 2) array-of-arrays (legacy)
+  return parsed;
 }
 
 async function apiPost(action, payload){
@@ -262,12 +366,58 @@ async function apiPost(action, payload){
     body: JSON.stringify({ action, ...payload })
   });
   const txt = await r.text();
-  try{ return JSON.parse(txt); }
-  catch(e){ throw new Error("API POST did not return JSON. First 200 chars: " + txt.slice(0,200)); }
+  let parsed;
+  try { parsed = JSON.parse(txt); }
+  catch(e){
+    throw new Error("API POST did not return JSON. First 200 chars: " + txt.slice(0,200));
+  }
+  return parsed;
+}
+
+/* =========================
+   NORMALIZE TASK SHAPES
+   ========================= */
+function normalizeId(v){
+  const s = String(v ?? "").trim();
+  return s;
+}
+function toLower(v){ return String(v ?? "").trim().toLowerCase(); }
+function numOrNow(v){
+  const n = Number(v);
+  return (isFinite(n) && n>0) ? n : Date.now();
+}
+function numOrZero(v){
+  const n = Number(v);
+  return (isFinite(n) && n>0) ? n : 0;
+}
+
+function normalizeTaskFromObj(o){
+  // Accepts either:
+  // {ID,Task,Tier,Status,Created,Updated,SnoozeUntil,Completed,Notes}
+  // or {id,task,tier,status,createdAt,...} etc.
+  const id = normalizeId(o.ID ?? o.id);
+  const text = String(o.Task ?? o.task ?? o.text ?? "").trim();
+  const tier = String(o.Tier ?? o.tier ?? "tier1").trim() || "tier1";
+  const status = toLower(o.Status ?? o.status ?? "ready");
+  const st = ["ready","waiting","done"].includes(status) ? status : "ready";
+
+  if(!id || !text) return null;
+
+  return {
+    id,
+    tier,
+    text,
+    status: st,
+    createdAt: numOrNow(o.Created ?? o.createdAt),
+    updatedAt: numOrNow(o.Updated ?? o.updatedAt),
+    snoozeUntil: numOrZero(o.SnoozeUntil ?? o.snoozeUntil),
+    completedAt: numOrZero(o.Completed ?? o.completedAt),
+    notes: String(o.Notes ?? o.notes ?? "")
+  };
 }
 
 function rowsToTasks(rows){
-  // Expected: [[headers...],[row...],...]
+  // legacy: [[headers...],[row...],...]
   if(!Array.isArray(rows) || rows.length === 0) return [];
   const header = rows[0].map(h => String(h||"").trim());
   const col = {};
@@ -283,50 +433,21 @@ function rowsToTasks(rows){
     const row = rows[i];
     if(!row || row.length===0) continue;
 
-    const id = String(get(row,"ID") || "").trim();
-    const text = String(get(row,"Task") || "").trim();
-    const tier = String(get(row,"Tier") || "tier1").trim();
-    const status = String(get(row,"Status") || "ready").trim().toLowerCase();
-
-    if(!id || !text) continue;
-
-    out.push({
-      id,
-      tier: tier || "tier1",
-      text,
-      status: ["ready","waiting","done"].includes(status) ? status : "ready",
-      createdAt: numOrNow(get(row,"Created")),
-      updatedAt: numOrNow(get(row,"Updated")),
-      snoozeUntil: numOrZero(get(row,"SnoozeUntil")),
-      completedAt: numOrZero(get(row,"Completed")),
-      notes: String(get(row,"Notes") || "")
-    });
+    const obj = {
+      ID: get(row,"ID"),
+      Task: get(row,"Task"),
+      Tier: get(row,"Tier"),
+      Status: get(row,"Status"),
+      Created: get(row,"Created"),
+      Updated: get(row,"Updated"),
+      SnoozeUntil: get(row,"SnoozeUntil"),
+      Completed: get(row,"Completed"),
+      Notes: get(row,"Notes")
+    };
+    const t = normalizeTaskFromObj(obj);
+    if(t) out.push(t);
   }
   return out;
-}
-
-function taskToRowObj(t){
-  // Must match sheet headers exactly
-  return {
-    ID: t.id,
-    Task: t.text,
-    Tier: t.tier,
-    Status: t.status,
-    Created: Number(t.createdAt || Date.now()),
-    Updated: Number(t.updatedAt || Date.now()),
-    SnoozeUntil: t.snoozeUntil ? Number(t.snoozeUntil) : "",
-    Completed: t.completedAt ? Number(t.completedAt) : "",
-    Notes: t.notes || ""
-  };
-}
-
-function numOrNow(v){
-  const n = Number(v);
-  return isFinite(n) && n>0 ? n : Date.now();
-}
-function numOrZero(v){
-  const n = Number(v);
-  return isFinite(n) && n>0 ? n : 0;
 }
 
 /* =========================
@@ -355,22 +476,76 @@ function pickNonRepeatingMessage(tierId){
 function daysSince(ms){
   return Math.floor((Date.now()-ms)/DAY_MS);
 }
-function tierHasActionableWork(tierId){
-  return tasks.some(t => t.tier===tierId && t.status==="ready");
-}
 
 /* =========================
    CLOUD LOAD / REFRESH
    ========================= */
 async function reloadCloud(){
-  const rows = await apiGet(); // array-of-arrays
-  tasks = rowsToTasks(rows);
+  const raw = await apiGet();
+
+  // Case A: {success:true, tasks:[...]}
+  if(raw && typeof raw === "object" && !Array.isArray(raw) && Array.isArray(raw.tasks)){
+    const normalized = raw.tasks
+      .map(normalizeTaskFromObj)
+      .filter(Boolean);
+
+    tasks = normalized;
+    return;
+  }
+
+  // Case B: array-of-arrays legacy
+  if(Array.isArray(raw)){
+    tasks = rowsToTasks(raw);
+    return;
+  }
+
+  // Case C: error object
+  if(raw && typeof raw === "object" && raw.success === false){
+    throw new Error(raw.message || "API returned success:false");
+  }
+
+  throw new Error("Unexpected API response shape.");
 }
 
 /* =========================
-   ACCOUNTABILITY ALERT (CLOUD)
-   - Looks at oldest UPDATED among READY tasks in each tier
-   - Ignores snoozed tasks
+   SAVE/UPDATE/DELETE (robust)
+   ========================= */
+async function postUpsert(task){
+  // Try modern backend first
+  let res = await apiPost("upsert", { task });
+  if(res && res.success === true) return res;
+
+  // Fallback: older backend might only support "save"
+  if(res && res.success === false && String(res.message||"").toLowerCase().includes("invalid post action")){
+    // Backend save expects: {action:"save", task, tier, status, notes, id?}
+    // We'll pass best-effort fields.
+    res = await apiPost("save", {
+      id: task.id,
+      task: task.text,
+      tier: task.tier,
+      status: task.status,
+      notes: task.notes || "",
+      // optional timestamps for smarter backends
+      createdAt: task.createdAt,
+      updatedAt: task.updatedAt,
+      snoozeUntil: task.snoozeUntil,
+      completedAt: task.completedAt
+    });
+    if(res && res.success === true) return res;
+  }
+
+  // If still failing, throw
+  throw new Error(res?.message || "Save failed.");
+}
+
+async function postDelete(id){
+  const res = await apiPost("delete", { id });
+  if(res && res.success === true) return res;
+  throw new Error(res?.message || "Delete failed.");
+}
+
+/* =========================
+   ACCOUNTABILITY ALERT
    ========================= */
 function buildSavageBanner(){
   const zone = document.getElementById("savageZone");
@@ -383,7 +558,7 @@ function buildSavageBanner(){
   const overdue = [];
   TIERS.forEach(t=>{
     if(t.cadenceDays == null) return;
-    // Only nag if READY work exists
+
     const candidates = tasks.filter(x =>
       x.tier===t.id &&
       x.status==="ready" &&
@@ -391,10 +566,10 @@ function buildSavageBanner(){
     );
     if(!candidates.length) return;
 
-    // Oldest updated task represents "staleness" for that tier
     candidates.sort((a,b)=>(a.updatedAt||0)-(b.updatedAt||0));
     const oldest = candidates[0];
     const since = daysSince(oldest.updatedAt || now);
+
     if(since >= t.cadenceDays){
       overdue.push({ tier:t, since });
     }
@@ -405,7 +580,6 @@ function buildSavageBanner(){
   overdue.sort((a,b)=> b.since - a.since);
   const pick = overdue[0];
   const tierId = pick.tier.id;
-  lastPickTierId = tierId;
 
   let msg;
   if(naggedDate[tierId] !== today){
@@ -424,10 +598,10 @@ function buildSavageBanner(){
     <div class="meta"><b>${pick.tier.title}</b> • You haven’t moved READY work in <b>${pick.since}</b> day(s).</div>
     <p>${msg}</p>
     <div class="actions">
-      <button type="button" data-snooze="1">Snooze 1 day</button>
-      <button type="button" data-snooze="3">Snooze 3 days</button>
-      <button type="button" data-snooze="7">Snooze 7 days</button>
-      <button type="button" data-jump="1">Jump to Tier</button>
+      <button type="button" data-snooze="1">Snooze 1d</button>
+      <button type="button" data-snooze="3">Snooze 3d</button>
+      <button type="button" data-snooze="7">Snooze 7d</button>
+      <button type="button" data-jump="1">Jump</button>
     </div>
   `;
 
@@ -451,13 +625,13 @@ async function snoozeTier(tierId, days){
   for(const t of targets){
     t.snoozeUntil = until;
     t.updatedAt = Date.now();
-    await apiPost("upsert", { task: taskToRowObj(t) });
+    await postUpsert(t);
   }
   await refresh();
 }
 
 /* =========================
-   RENDER BOARD
+   RENDER BOARD (DENSE)
    ========================= */
 function render(){
   buildSavageBanner();
@@ -465,29 +639,34 @@ function render(){
   const board = document.getElementById("board");
   board.innerHTML="";
 
+  const statusOrder = { ready:0, waiting:1, done:2 };
+
   TIERS.forEach(tier=>{
     const card = document.createElement("div");
     card.className="tier";
     card.id = tier.id;
 
     const hint = tier.cadenceDays==null
-      ? "Parked items never trigger reminders."
-      : `Reminder cadence: every ${tier.cadenceDays} day(s) if READY work exists.`;
+      ? "Parked never nags."
+      : `Nag: ${tier.cadenceDays}d if READY exists.`;
 
-    card.innerHTML = `<h2>${tier.title}</h2><div class="tierHint">${hint}</div>`;
+    const head = document.createElement("div");
+    head.className="tierHead";
+    head.innerHTML = `
+      <div class="tierTitle">${tier.title}</div>
+      <div class="tierHint">${hint}</div>
+    `;
+    card.appendChild(head);
 
     const tierTasks = tasks
       .filter(x => x.tier === tier.id)
-      .sort((a, b) => {
-        const order = { ready: 0, waiting: 1, done: 2 };
-        return order[a.status] - order[b.status];
-      });
+      .sort((a,b)=> statusOrder[a.status]-statusOrder[b.status]);
 
     tierTasks.forEach(task=>{
       const row = document.createElement("div");
       row.className="row";
 
-      // Checkbox toggles DONE / READY
+      // Checkbox: toggles DONE <-> READY (keeps your “fast” workflow)
       const cb = document.createElement("input");
       cb.type="checkbox";
       cb.checked = (task.status==="done");
@@ -495,7 +674,7 @@ function render(){
         task.status = cb.checked ? "done" : "ready";
         task.updatedAt = Date.now();
         task.completedAt = (task.status==="done") ? Date.now() : 0;
-        await apiPost("upsert", { task: taskToRowObj(task) });
+        await postUpsert(task);
         await refresh();
       };
 
@@ -518,7 +697,7 @@ function render(){
         task.status = status.value;
         task.updatedAt = Date.now();
         task.completedAt = (task.status==="done") ? Date.now() : 0;
-        await apiPost("upsert", { task: taskToRowObj(task) });
+        await postUpsert(task);
         await refresh();
       };
 
@@ -534,11 +713,11 @@ function render(){
       move.onchange = async ()=>{
         task.tier = move.value;
         task.updatedAt = Date.now();
-        await apiPost("upsert", { task: taskToRowObj(task) });
+        await postUpsert(task);
         await refresh();
       };
 
-      // Edit / Delete buttons
+      // Edit/Delete buttons
       const btnWrap = document.createElement("div");
       btnWrap.className="btns";
 
@@ -546,18 +725,18 @@ function render(){
       editBtn.className="iconBtn";
       editBtn.type="button";
       editBtn.textContent="✏️";
-      editBtn.title="Edit task";
+      editBtn.title="Edit";
       editBtn.onclick=()=>openModal("edit", task);
 
       const delBtn = document.createElement("button");
       delBtn.className="iconBtn danger";
       delBtn.type="button";
       delBtn.textContent="🗑️";
-      delBtn.title="Delete task";
+      delBtn.title="Delete";
       delBtn.onclick=async ()=>{
         const ok = confirm("Delete this task?\n\n" + task.text);
         if(!ok) return;
-        await apiPost("delete", { id: task.id });
+        await postDelete(task.id);
         await refresh();
       };
 
@@ -580,7 +759,7 @@ function render(){
 }
 
 /* =========================
-   HALL OF SHAME = DONE TASKS (cloud)
+   HALL OF SHAME
    ========================= */
 function renderHallOfShame(){
   const el = document.getElementById("logs");
@@ -589,7 +768,7 @@ function renderHallOfShame(){
     .sort((a,b)=>(b.completedAt||0)-(a.completedAt||0));
 
   if(!done.length){
-    el.innerHTML = `<div class="log">No DONE tasks yet. Suspiciously quiet.</div>`;
+    el.innerHTML = `<div class="log">No DONE tasks yet.</div>`;
     return;
   }
 
@@ -613,7 +792,7 @@ function escapeHtml(s){
 }
 
 /* =========================
-   ADD/EDIT MODAL
+   MODAL
    ========================= */
 const modal = document.getElementById("modal");
 const modalTitle = document.getElementById("modalTitle");
@@ -626,7 +805,7 @@ const cancelBtn = document.getElementById("cancelBtn");
 const saveBtn = document.getElementById("saveBtn");
 const addTaskBtn = document.getElementById("addTaskBtn");
 
-let modalMode = "add"; // add | edit
+let modalMode = "add";
 let editTaskId = null;
 
 function fillTierOptions(){
@@ -661,12 +840,10 @@ function openModal(mode, task){
   }
 
   modal.style.display="block";
-  setTimeout(()=>taskInput.focus(), 50);
+  setTimeout(()=>taskInput.focus(), 30);
 }
 
-function closeModal(){
-  modal.style.display="none";
-}
+function closeModal(){ modal.style.display="none"; }
 
 async function saveModal(){
   const text = (taskInput.value||"").trim();
@@ -691,7 +868,7 @@ async function saveModal(){
       completedAt: (statusSelect.value==="done") ? now : 0,
       notes: (notesInput.value||"").trim()
     };
-    await apiPost("upsert", { task: taskToRowObj(newTask) });
+    await postUpsert(newTask);
   } else {
     const t = tasks.find(x=>x.id===editTaskId);
     if(t){
@@ -701,14 +878,13 @@ async function saveModal(){
       t.notes = (notesInput.value||"").trim();
       t.updatedAt = now;
       t.completedAt = (t.status==="done") ? now : 0;
-      await apiPost("upsert", { task: taskToRowObj(t) });
+      await postUpsert(t);
     }
   }
 
   closeModal();
   await refresh();
 
-  // Scroll to the relevant tier after save
   const dest = document.getElementById(tierSelect.value);
   if(dest && dest.scrollIntoView) dest.scrollIntoView({behavior:"smooth"});
 }
@@ -734,16 +910,12 @@ async function refresh(){
     render();
   } catch(err){
     alert("Cloud load failed.\n\n" + err.message);
-    console.error(err);
+    console.error("Cloud load failed:", err);
   }
 }
 
-// First load
 refresh();
-
-// Re-check banner every 60 seconds (UI only)
 setInterval(()=>{ buildSavageBanner(); }, 60000);
 </script>
 </body>
 </html>
-
