@@ -362,8 +362,8 @@ if(!tasks || !Array.isArray(tasks) || tasks.length === 0){
 })();
 
 async function saveAll(){
-  await fetch("https://script.google.com/macros/s/AKfycbyCVOwhCtWJX2X7bQE9dVNKgtVt-TBt8HTioqFf9Xk1EY-XM8joKX9GS5a0gAzvwouZgw/exec
-", {
+await fetch("https://script.google.com/macros/s/AKfycbyCVOwhCtWJX2X7bQE9dVNKgtVt-TBt8HTioqFf9Xk1EY-XM8joKX9GS5a0gAzvwouZgw/exec", {
+
     method: "POST",
     body: new URLSearchParams({
       action: "saveAll",
@@ -755,6 +755,7 @@ setInterval(()=>{ buildSavageBanner(); }, 60000);
 </script>
 </body>
 </html>
+
 
 
 
