@@ -298,12 +298,12 @@ async function loadFromServer(){
   render();
 }
 
-let tasks = [];
-let touched = {};
-let naggedDate = {};
-let snoozeUntil = {};
-let logs = [];
-let msgHist = {};
+let tasks = loadJSON(STORAGE.TASKS, []);
+let touched = loadJSON(STORAGE.TOUCHED, {});
+let naggedDate = loadJSON(STORAGE.NAGGED, {});
+let snoozeUntil = loadJSON(STORAGE.SNOOZE, {});
+let logs = loadJSON(STORAGE.LOGS, []);
+let msgHist = loadJSON(STORAGE.MSGHIST, {});
 
 
 // Bootstrap tasks once if empty
@@ -721,4 +721,5 @@ setInterval(()=>{ buildSavageBanner(); }, 60000);
 </script>
 </body>
 </html>
+
 
