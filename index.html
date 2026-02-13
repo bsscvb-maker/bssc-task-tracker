@@ -338,21 +338,6 @@ async function loadFromServer(){
 }
 
 
-  } catch(err){
-    console.error("Fetch failed:", err);
-
-    tasks = DEFAULT_TASKS.map((t, idx)=>({
-      id: "t_"+Date.now()+"_"+idx,
-      tier: t[0],
-      text: t[1],
-      status: "ready",
-      createdAt: Date.now()
-    }));
-
-    render();
-  }
-}
-
 
 // Bootstrap tasks once if empty
 if(!tasks || !Array.isArray(tasks) || tasks.length === 0){
@@ -770,6 +755,7 @@ setInterval(()=>{ buildSavageBanner(); }, 60000);
 </script>
 </body>
 </html>
+
 
 
 
