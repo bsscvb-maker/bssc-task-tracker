@@ -301,27 +301,42 @@ function randPick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
    ========================= */
 async function loadFromServer(){
   try{
-    https://script.google.com/macros/s/AKfycbyCVOwhCtWJX2X7bQE9dVNKgtVt-TBt8HTioqFf9Xk1EY-XM8joKX9GS5a0gAzvwouZgw/exec
+    const res = await fetch("https://script.google.com/macros/s/AKfycbyCVOwhCtWJX2X7bQE9dVNKgtVt-TBt8HTioqFf9Xk1EY-XM8joKX9GS5a0gAzvwouZgw/exec");
     const data = await res.json();
 
-if (Array.isArray(data) && data.length) {
-  // Skip header row
-  const rows = data.slice(1);
+    if (Array.isArray(data) && data.length) {
+      const rows = data.slice(1); // skip header row
 
-  tasks = rows.map(r => ({
-    id: r[0],
-    text: r[1],
-    tier: r[2],
-    status: r[3],
-    createdAt: r[4],
-    updatedAt: r[5],
-    snoozeUntil: r[6],
-    completedAt: r[7],
-    notes: r[8]
-  }));
-}
+      tasks = rows.map(r => ({
+        id: r[0],
+        text: r[1],
+        tier: r[2],
+        status: r[3],
+        createdAt: r[4],
+        updatedAt: r[5],
+        snoozeUntil: r[6],
+        completedAt: r[7],
+        notes: r[8]
+      }));
+    }
 
     render();
+
+  } catch(err){
+    console.error("Fetch failed:", err);
+
+    tasks = DEFAULT_TASKS.map((t, idx)=>({
+      id: "t_"+Date.now()+"_"+idx,
+      tier: t[0],
+      text: t[1],
+      status: "ready",
+      createdAt: Date.now()
+    }));
+
+    render();
+  }
+}
+
 
   } catch(err){
     console.error("Fetch failed:", err);
@@ -755,6 +770,7 @@ setInterval(()=>{ buildSavageBanner(); }, 60000);
 </script>
 </body>
 </html>
+
 
 
 
