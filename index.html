@@ -303,7 +303,8 @@ function randPick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
    ========================= */
 async function loadFromServer(){
   try{
-    const res = await fetch("https://script.google.com/macros/s/AKfycbyCVOwhCtWJX2X7bQE9dVNKgtVt-TBt8HTioqFf9Xk1EY-XM8joKX9GS5a0gAzvwouZgw/exec=getAll");
+    const res = await fetch("https://script.google.com/macros/s/AKfycbyCVOwhCtWJX2X7bQE9dVNKgtVt-TBt8HTioqFf9Xk1EY-XM8joKX9GS5a0gAzvwouZgw/exec?action=getAll")
+
     const data = await res.json();
 
 if (Array.isArray(data)) {
@@ -746,6 +747,7 @@ setInterval(()=>{ buildSavageBanner(); }, 60000);
 </script>
 </body>
 </html>
+
 
 
 
