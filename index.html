@@ -292,11 +292,23 @@ function randPick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
    STATE LOAD
    ========================= */
 async function loadFromServer(){
-  const res = await fetch("https://script.google.com/macros/s/AKfycbyCVOwhCtWJX2X7bQE9dVNKgtVt-TBt8HTioqFf9Xk1EY-XM8joKX9GS5a0gAzvwouZgw/exec");
-  const data = await res.json();
-  tasks = data;
-  render();
+  try{
+    const res = await fetch("https://script.google.com/macros/s/AKfycbyCVOwhCtWJX2X7bQE9dVNKgtVt-TBt8HTioqFf9Xk1EY-XM8joKX9GS5a0gAzvwouZgw/exec");
+    const data = await res.json();
+
+    if(Array.isArray(data) && data.length){
+      tasks = data;
+    } else {
+      console.warn("No tasks returned from server. Using defaults.");
+    }
+
+    render();
+  } catch(err){
+    console.error("Fetch failed:", err);
+    render();
+  }
 }
+
 
 let tasks = loadJSON(STORAGE.TASKS, []);
 let touched = loadJSON(STORAGE.TOUCHED, {});
@@ -721,5 +733,6 @@ setInterval(()=>{ buildSavageBanner(); }, 60000);
 </script>
 </body>
 </html>
+
 
 
