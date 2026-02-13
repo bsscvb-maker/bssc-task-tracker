@@ -6,7 +6,121 @@
 <title>BSSC Task Tracker — Full (Tiers + Status + Savage + Add/Edit/Delete)</title>
 
 <style>
-/* (YOUR ENTIRE CSS BLOCK REMAINS 100% IDENTICAL — UNCHANGED) */
+  body{margin:0;background:#000;color:#fff;font-family:Verdana,Arial,sans-serif;}
+  header{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:16px 18px;border-bottom:1px solid #222;background:#050505;
+    position:sticky;top:0;z-index:50;
+  }
+  h1{margin:0;font-size:20px;}
+  .sub{opacity:.75;font-size:12px;margin-top:2px;}
+  #addTaskBtn{
+    background:#1a73e8;color:#fff;border:none;border-radius:10px;
+    padding:10px 14px;font-size:13px;font-weight:700;cursor:pointer;
+  }
+  #addTaskBtn:hover{background:#2b7de9;}
+
+  .wrap{max-width:1200px;margin:auto;padding:18px;}
+
+  .note{
+    border:1px solid #2a2a2a;background:#0d0d0d;border-radius:12px;
+    padding:12px 14px;margin:0 0 14px;font-size:12px;line-height:1.45;opacity:.92;
+  }
+
+  /* ===== Savage Banner ===== */
+  #savageZone{display:none;margin:0 0 14px;}
+  .savage{
+    border:2px solid #7a0000;background:#2b0000;border-radius:12px;
+    padding:14px;
+  }
+  .savage h3{margin:0 0 6px;color:#ffb3b3;font-size:16px;}
+  .savage p{margin:6px 0;font-size:13px;line-height:1.4;}
+  .savage .meta{opacity:.85;font-size:12px;}
+  .savage .actions{margin-top:10px;}
+  .savage button{
+    background:#000;color:#fff;border:1px solid #555;border-radius:10px;
+    padding:7px 10px;margin-right:8px;cursor:pointer;font-size:12px;
+  }
+  .savage button:hover{border-color:#aaa;}
+
+  /* ===== Board ===== */
+  .tier{
+    border:1px solid #333;border-radius:14px;padding:14px;margin:0 0 16px;background:#111;
+  }
+  .tier h2{margin:0 0 10px;font-size:18px;}
+  .tier .tierHint{opacity:.75;font-size:12px;margin-bottom:10px;}
+  .row{
+    display:grid;
+    grid-template-columns: 28px 1fr 130px 230px 70px;
+    gap:26px;
+    align-items:center;
+    margin:8px 0;
+  }
+  input[type="checkbox"]{width:18px;height:18px;cursor:pointer;}
+  .taskText{
+    font-weight:600;font-size:13px;line-height:1.3;
+  }
+  .taskText.done{text-decoration:line-through;opacity:.45;}
+  .taskText.waiting{opacity:.70;font-style:italic;}
+
+  select, input[type="text"]{
+    background:#0f0f0f;color:#fff;border:1px solid #444;border-radius:10px;
+    padding:7px 10px;font-size:12px;
+  }
+
+  .status-ready{color:#ff4d4d;font-weight:800;}
+  .status-waiting{color:#ffd24d;font-weight:800;}
+  .status-done{color:#5cff5c;font-weight:800;}
+
+  .btns{display:flex;gap:8px;justify-content:flex-end;}
+  .iconBtn{
+    background:#000;border:1px solid #555;color:#fff;border-radius:10px;
+    padding:7px 10px;cursor:pointer;font-size:12px;
+  }
+  .iconBtn:hover{border-color:#aaa;}
+  .danger:hover{border-color:#ff6b6b;}
+
+  /* ===== Hall of Shame ===== */
+  .hall{
+    border:1px solid #333;border-radius:14px;padding:12px;background:#0b0b0b;
+    margin-top:12px;
+  }
+  .hall h3{margin:0 0 10px;}
+  .log{font-size:11px;opacity:.92;border-bottom:1px solid #222;padding:7px 0;}
+  .pill{
+    display:inline-block;padding:2px 7px;border:1px solid #444;border-radius:999px;
+    font-size:10px;margin-right:6px;opacity:.95;
+  }
+
+  /* ===== Modal ===== */
+  #modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:999;}
+  #modalBox{
+    width:390px;max-width:92vw;margin:110px auto;background:#111;border:1px solid #444;
+    border-radius:14px;padding:16px;
+  }
+  #modalBox h3{margin:0 0 12px;}
+  #modalBox label{display:block;font-size:12px;opacity:.85;margin:8px 0 6px;}
+  #modalBox .error{
+    display:none;color:#ff6b6b;font-size:12px;margin:0 0 6px;
+  }
+  #modalActions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px;}
+  #modalActions button{
+    background:#000;color:#fff;border:1px solid #555;border-radius:10px;
+    padding:8px 12px;cursor:pointer;font-size:12px;
+  }
+  #modalActions button:hover{border-color:#aaa;}
+
+  /* Small screens */
+  @media(max-width:900px){
+    .row{grid-template-columns: 28px 1fr 120px 1fr 70px;}
+  }
+  @media(max-width:650px){
+    .row{grid-template-columns: 28px 1fr;}
+    .row > *:nth-child(3),
+    .row > *:nth-child(4),
+    .row > *:nth-child(5){grid-column:2;}
+    .btns{justify-content:flex-start;}
+  }
 </style>
 </head>
 
@@ -14,12 +128,13 @@
 <header>
   <div>
     <h1>BSSC Task Tracker</h1>
-    <div class="sub">Cloud Synced • Google Drive Backup • Ready / Waiting / Done • Accountability enabled</div>
+    <div class="sub">Offline HTML • Saves on this device • Ready / Waiting / Done • Accountability enabled</div>
   </div>
   <button id="addTaskBtn">Add Task</button>
 </header>
 
 <div class="wrap">
+
   <div class="note">
     <b>Statuses:</b>
     <span class="status-ready">READY</span> = actionable now •
@@ -29,6 +144,7 @@
   </div>
 
   <div id="savageZone"></div>
+
   <div id="board"></div>
 
   <div class="hall">
@@ -37,21 +153,44 @@
   </div>
 </div>
 
-<!-- Modal remains unchanged -->
+<!-- Add/Edit Modal -->
+<div id="modal">
+  <div id="modalBox">
+    <h3 id="modalTitle">Add Task</h3>
+    <div id="modalError" class="error">Type something. Telepathy isn’t enabled.</div>
+
+    <label for="taskInput">Task</label>
+    <input id="taskInput" type="text" placeholder="Enter task here…" />
+
+    <label for="tierSelect">Tier</label>
+    <select id="tierSelect"></select>
+
+    <label for="statusSelect">Status</label>
+    <select id="statusSelect">
+      <option value="ready">READY</option>
+      <option value="waiting">WAITING</option>
+      <option value="done">DONE</option>
+    </select>
+
+    <div id="modalActions">
+      <button id="cancelBtn" type="button">Cancel</button>
+      <button id="saveBtn" type="button">Save</button>
+    </div>
+  </div>
+</div>
 
 <script>
 /* =========================
-   GOOGLE SHEETS BACKEND
+   OPTION B STORAGE (PERSIST)
    ========================= */
-
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyCVOwhCtWJX2X7bQE9dVNKgtVt-TBt8HTioqFf9Xk1EY-XM8joKX9GS5a0gAzvwouZgw/exec";
-
-let tasks = [];
-let touched = {};
-let naggedDate = {};
-let snoozeUntil = {};
-let logs = [];
-let msgHist = {};
+const STORAGE = {
+  TASKS:  "BSSC_TASKS_V6",
+  TOUCHED:"BSSC_TIER_TOUCHED_V6",
+  NAGGED:"BSSC_TIER_NAGGEDDATE_V6",
+  SNOOZE:"BSSC_TIER_SNOOZE_V6",
+  LOGS:  "BSSC_SHAME_LOG_V6",
+  MSGHIST:"BSSC_MSG_HIST_V6"
+};
 
 const DAY_MS = 24*60*60*1000;
 
@@ -64,50 +203,268 @@ const TIERS = [
   { id:"parked",title:"⚪ Parked / Deprecated", cadenceDays:null }
 ];
 
+// Default tasks (your original tier list)
+const DEFAULT_TASKS = [
+  // Tier 1
+  ["tier1","Tax exempt form – complete"],
+  ["tier1","Complete VDACS form and get signatures"],
+  ["tier1","Mail off VDACS form"],
+  ["tier1","Tax exempt requests (Amazon, Walmart, Pedal, GotPrint)"],
+  ["tier1","Create fund request form for committee funds"],
+  ["tier1","Resolve Google Drive Low Storage"],
+  ["tier1","Fund form – backend"],
+  ["tier1","Redo sponsorship program"],
+  ["tier1","Alert for when website goes down"],
+  ["tier1","Website member-only access"],
+  // Tier 2
+  ["tier2","Missed meeting automation"],
+  ["tier2","Join BoneShakers script automation"],
+  ["tier2","Signal text messaging"],
+  ["tier2","Member-only spontaneous rides"],
+  ["tier2","Setup buddy meeting"],
+  ["tier2","Grant writing"],
+  // Tier 3
+  ["tier3","Action item: Pedal bikes"],
+  ["tier3","Lesson learned – Bikes for Tykes"],
+  ["tier3","Redo sponsorship program support materials (banners, popups)"],
+  ["tier3","Roll-up popup with sponsor on it"],
+  ["tier3","Retractable banner"],
+  // Tier 4
+  ["tier4","Back patch design"],
+  ["tier4","Past President patch – order 3"],
+  ["tier4","Claire patch order / pickup"],
+  ["tier4","Bike parking signs"],
+  // Tier 5
+  ["tier5","Our story bathroom pictures and poster at Gators"],
+  ["tier5","Appendix"],
+  ["tier5","Feb meeting w/ John Bishop"],
+  ["tier5","Jerry Lindsey"],
+  // Parked
+  ["parked","Google Voice mass text messages"],
+  ["parked","Bike night webpage"],
+  ["parked","Email signatures"],
+  ["parked","Portal access"],
+  ["parked","Ben Dillon Email set up"],
+  ["parked","Sponsor list"]
+];
+
 /* =========================
-   LOAD FROM GOOGLE SHEETS
+   SAVAGE MESSAGE ENGINE
    ========================= */
+const ROAST = {
+  tier1: [
+    "Tier 1 is still open. That’s not a vibe. That’s a problem.",
+    "Tier 1 overdue. Congratulations, you’ve invented chaos again.",
+    "This is critical. Pretending it’s fine does not count as progress.",
+    "Tier 1 ignored long enough to qualify as negligence."
+  ],
+  tier2: [
+    "Tier 2 is aging like milk. You gonna do anything or nah?",
+    "High-impact stuff doesn’t complete itself. Tragically.",
+    "Tier 2 is overdue. That’s how good systems become ‘later problems’."
+  ],
+  tier3: [
+    "Tier 3 called. Growth is not happening by vibes.",
+    "We should be arrested for this level of tomfoolery.",
+    "This is not blocked. This is being avoided professionally."
+  ],
+  tier4: [
+    "Tier 4 sitting there like a neglected haircut appointment.",
+    "Brand work ignored = redo everything later. Pick your pain.",
+    "Tier 4 overdue. This is how you end up with ‘random’ branding."
+  ],
+  tier5: [
+    "Tier 5 has been ignored so long it’s basically a historical site.",
+    "Tier 5 overdue. This is peak nonsense. Elite procrastination.",
+    "Tier 5 is still waiting. Patient little thing, isn’t it?"
+  ]
+};
 
-async function loadFromServer() {
-  const res = await fetch(WEB_APP_URL);
-  const data = await res.json();
+function todayKey(){ return new Date().toDateString(); }
+function stamp(){
+  const d=new Date();
+  const p=n=>String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+}
+function randPick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
-  tasks = data.map(t => ({
-    id: t.id,
-    text: t.text,
-    tier: t.tier,
-    status: t.status,
-    createdAt: t.createdAt,
-    snoozeUntil: t.snoozeUntil,
-    notes: t.notes
+/* =========================
+   STATE LOAD
+   ========================= */
+function loadJSON(key, fallback){
+  try{
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  }catch(e){ return fallback; }
+}
+
+let tasks = loadJSON(STORAGE.TASKS, null);
+let touched = loadJSON(STORAGE.TOUCHED, {});
+let naggedDate = loadJSON(STORAGE.NAGGED, {});
+let snoozeUntil = loadJSON(STORAGE.SNOOZE, {});
+let logs = loadJSON(STORAGE.LOGS, []);
+let msgHist = loadJSON(STORAGE.MSGHIST, {}); // tierId -> [recent message strings]
+
+// Bootstrap tasks once if empty
+if(!tasks || !Array.isArray(tasks) || tasks.length === 0){
+  tasks = DEFAULT_TASKS.map((t, idx)=>({
+    id: "t_"+Date.now()+"_"+idx,
+    tier: t[0],
+    text: t[1],
+    status: "ready",
+    createdAt: Date.now()
   }));
-
-  render();
 }
 
-/* =========================
-   SAVE TO GOOGLE SHEETS
-   ========================= */
-
-async function saveToServer() {
-  await fetch(WEB_APP_URL, {
-    method: "POST",
-    body: new URLSearchParams({
-      action: "saveAll",
-      data: JSON.stringify({ tasks })
-    })
+// Ensure touched exists for each tier (backdated so nags can work)
+(function initTouched(){
+  const now = Date.now();
+  TIERS.forEach(t=>{
+    if(t.cadenceDays == null) return;
+    if(!touched[t.id]){
+      touched[t.id] = now - (t.cadenceDays + 1)*DAY_MS;
+    }
   });
+})();
+
+function saveAll(){
+  localStorage.setItem(STORAGE.TASKS, JSON.stringify(tasks));
+  localStorage.setItem(STORAGE.TOUCHED, JSON.stringify(touched));
+  localStorage.setItem(STORAGE.NAGGED, JSON.stringify(naggedDate));
+  localStorage.setItem(STORAGE.SNOOZE, JSON.stringify(snoozeUntil));
+  localStorage.setItem(STORAGE.LOGS, JSON.stringify(logs));
+  localStorage.setItem(STORAGE.MSGHIST, JSON.stringify(msgHist));
 }
 
 /* =========================
-   EXISTING ENGINE (UNCHANGED)
+   HELPERS
    ========================= */
-
 function touchTier(tierId){
   touched[tierId] = Date.now();
+  saveAll();
 }
 
+function statusClass(status){
+  if(status==="ready") return "status-ready";
+  if(status==="waiting") return "status-waiting";
+  return "status-done";
+}
+
+function taskTextClass(status){
+  if(status==="done") return "taskText done";
+  if(status==="waiting") return "taskText waiting";
+  return "taskText";
+}
+
+/* =========================
+   SAVAGE CHECK (PHASE 3 + 4)
+   ========================= */
+function tierHasActionableWork(tierId){
+  return tasks.some(t => t.tier===tierId && t.status==="ready");
+}
+
+function daysSince(ms){
+  return Math.floor((Date.now()-ms)/DAY_MS);
+}
+
+function recordLog(tierTitle, sinceDays, msg){
+  logs.unshift({
+    time: stamp(),
+    tier: tierTitle,
+    sinceDays,
+    msg
+  });
+  if(logs.length>250) logs = logs.slice(0,250);
+}
+
+function pickNonRepeatingMessage(tierId){
+  const pool = ROAST[tierId] || ["Do the thing."];
+  const hist = msgHist[tierId] || [];
+  // prefer a message not recently used
+  const candidates = pool.filter(m => !hist.includes(m));
+  const chosen = candidates.length ? randPick(candidates) : randPick(pool);
+  const nextHist = [chosen].concat(hist).slice(0,6);
+  msgHist[tierId] = nextHist;
+  return chosen;
+}
+
+function buildSavageBanner(){
+  const zone = document.getElementById("savageZone");
+  zone.innerHTML="";
+  zone.style.display="none";
+
+  const now = Date.now();
+  const today = todayKey();
+
+  // Build list of overdue tiers (excluding parked)
+  const overdue = [];
+  TIERS.forEach(t=>{
+    if(t.cadenceDays == null) return;
+    if(snoozeUntil[t.id] && snoozeUntil[t.id] > now) return;
+    if(!tierHasActionableWork(t.id)) return; // only nag if READY work exists
+    const last = touched[t.id] || 0;
+    const since = daysSince(last);
+    if(since >= t.cadenceDays){
+      overdue.push({ tier:t, since });
+    }
+  });
+
+  if(!overdue.length) return;
+
+  // Show one banner per load cycle, prefer the most overdue tier
+  overdue.sort((a,b)=> b.since - a.since);
+  const pick = overdue[0];
+  const tierId = pick.tier.id;
+
+  // Only fire a new “daily” nag once per tier per day (but still show banner if already nagged today)
+  let msg;
+  if(naggedDate[tierId] !== today){
+    msg = pickNonRepeatingMessage(tierId);
+    naggedDate[tierId] = today;
+    recordLog(pick.tier.title, pick.since, msg);
+    saveAll();
+  } else {
+    // already nagged today: still show something (use last used message if available)
+    const hist = msgHist[tierId] || [];
+    msg = hist[0] || pickNonRepeatingMessage(tierId);
+  }
+
+  zone.style.display="block";
+  const card = document.createElement("div");
+  card.className="savage";
+  card.innerHTML = `
+    <h3>Accountability Alert</h3>
+    <div class="meta"><b>${pick.tier.title}</b> • You haven’t touched this tier in <b>${pick.since}</b> day(s).</div>
+    <p>${msg}</p>
+    <div class="actions">
+      <button type="button" data-snooze="1">Snooze 1 day</button>
+      <button type="button" data-snooze="3">Snooze 3 days</button>
+      <button type="button" data-snooze="7">Snooze 7 days</button>
+      <button type="button" data-jump="1">Jump to Tier</button>
+    </div>
+  `;
+  card.querySelectorAll("button[data-snooze]").forEach(btn=>{
+    btn.onclick=()=>{
+      const d = Number(btn.getAttribute("data-snooze"));
+      snoozeUntil[tierId] = Date.now() + d*DAY_MS;
+      saveAll();
+      render();
+    };
+  });
+  card.querySelector("button[data-jump]").onclick=()=>{
+    const el = document.getElementById(tierId);
+    if(el && el.scrollIntoView) el.scrollIntoView({behavior:"smooth"});
+  };
+
+  zone.appendChild(card);
+}
+
+/* =========================
+   RENDER BOARD
+   ========================= */
 function render(){
+  buildSavageBanner();
+
   const board = document.getElementById("board");
   board.innerHTML="";
 
@@ -115,27 +472,41 @@ function render(){
     const card = document.createElement("div");
     card.className="tier";
     card.id = tier.id;
-    card.innerHTML = `<h2>${tier.title}</h2>`;
 
-    tasks.filter(x=>x.tier===tier.id)
-    .forEach(task=>{
-      const row=document.createElement("div");
+    const hint = tier.cadenceDays==null
+      ? "Parked items never trigger reminders."
+      : `Reminder cadence: every ${tier.cadenceDays} day(s) if READY work exists.`;
+
+    card.innerHTML = `<h2>${tier.title}</h2><div class="tierHint">${hint}</div>`;
+
+const tierTasks = tasks
+  .filter(x => x.tier === tier.id)
+  .sort((a, b) => {
+    const order = { ready: 0, waiting: 1, done: 2 };
+    return order[a.status] - order[b.status];
+  });
+    tierTasks.forEach(task=>{
+      const row = document.createElement("div");
       row.className="row";
 
-      const cb=document.createElement("input");
+      // Checkbox toggles DONE / READY
+      const cb = document.createElement("input");
       cb.type="checkbox";
-      cb.checked = task.status==="done";
-      cb.onchange=async ()=>{
-        task.status = cb.checked ? "done":"ready";
-        await saveToServer();
+      cb.checked = (task.status==="done");
+      cb.onchange = ()=>{
+        task.status = cb.checked ? "done" : "ready";
+        touchTier(task.tier);
+        saveAll();
         render();
       };
 
-      const text=document.createElement("div");
-      text.className="taskText";
-      text.textContent=task.text;
+      // Text
+      const text = document.createElement("div");
+      text.className = taskTextClass(task.status);
+      text.textContent = task.text;
 
-      const status=document.createElement("select");
+      // Status dropdown
+      const status = document.createElement("select");
       ["ready","waiting","done"].forEach(s=>{
         const opt=document.createElement("option");
         opt.value=s;
@@ -143,13 +514,16 @@ function render(){
         if(task.status===s) opt.selected=true;
         status.appendChild(opt);
       });
-      status.onchange=async ()=>{
-        task.status=status.value;
-        await saveToServer();
+      status.className = statusClass(task.status);
+      status.onchange = ()=>{
+        task.status = status.value;
+        touchTier(task.tier);
+        saveAll();
         render();
       };
 
-      const move=document.createElement("select");
+      // Move tier dropdown
+      const move = document.createElement("select");
       TIERS.forEach(tt=>{
         const opt=document.createElement("option");
         opt.value=tt.id;
@@ -157,35 +531,45 @@ function render(){
         if(task.tier===tt.id) opt.selected=true;
         move.appendChild(opt);
       });
-      move.onchange=async ()=>{
-        task.tier=move.value;
-        await saveToServer();
+      move.onchange = ()=>{
+        const oldTier = task.tier;
+        task.tier = move.value;
+        touchTier(oldTier);
+        touchTier(task.tier);
+        saveAll();
         render();
       };
 
-      const btnWrap=document.createElement("div");
+      // Edit / Delete buttons
+      const btnWrap = document.createElement("div");
       btnWrap.className="btns";
 
-      const editBtn=document.createElement("button");
+      const editBtn = document.createElement("button");
+      editBtn.className="iconBtn";
+      editBtn.type="button";
       editBtn.textContent="✏️";
-      editBtn.onclick=async ()=>{
-        const newText=prompt("Edit task:",task.text);
-        if(!newText) return;
-        task.text=newText;
-        await saveToServer();
-        render();
-      };
+      editBtn.title="Edit task";
+      editBtn.onclick=()=>openModal("edit", task);
 
-      const delBtn=document.createElement("button");
+      const delBtn = document.createElement("button");
+      delBtn.className="iconBtn danger";
+      delBtn.type="button";
       delBtn.textContent="🗑️";
-      delBtn.onclick=async ()=>{
-        tasks=tasks.filter(x=>x.id!==task.id);
-        await saveToServer();
+      delBtn.title="Delete task";
+      delBtn.onclick=()=>{
+        const ok = confirm("Delete this task?\n\n" + task.text);
+        if(!ok) return;
+        tasks = tasks.filter(x=>x.id !== task.id);
+        touchTier(task.tier);
+        saveAll();
         render();
       };
 
       btnWrap.appendChild(editBtn);
       btnWrap.appendChild(delBtn);
+
+      // Spacer (for grid alignment)
+      const spacer = document.createElement("div");
 
       row.appendChild(cb);
       row.appendChild(text);
@@ -198,25 +582,140 @@ function render(){
 
     board.appendChild(card);
   });
+
+  renderLogs();
 }
 
-document.getElementById("addTaskBtn").onclick=async ()=>{
-  const text=prompt("Enter task:");
-  if(!text) return;
+/* =========================
+   HALL OF SHAME
+   ========================= */
+function renderLogs(){
+  const el = document.getElementById("logs");
+  if(!logs.length){
+    el.innerHTML = `<div class="log">No shame logged yet. Suspiciously quiet.</div>`;
+    return;
+  }
+  el.innerHTML = logs.map(l=>{
+    return `<div class="log">
+      <span class="pill">${l.time}</span>
+      <span class="pill">${l.tier}</span>
+      <span class="pill">${l.sinceDays}d</span>
+      ${l.msg}
+    </div>`;
+  }).join("");
+}
 
-  tasks.push({
-    id:"t_"+Date.now(),
-    text,
-    tier:"tier1",
-    status:"ready",
-    createdAt:new Date()
+/* =========================
+   ADD/EDIT MODAL + DELETE SUPPORT
+   ========================= */
+const modal = document.getElementById("modal");
+const modalTitle = document.getElementById("modalTitle");
+const modalError = document.getElementById("modalError");
+const taskInput = document.getElementById("taskInput");
+const tierSelect = document.getElementById("tierSelect");
+const statusSelect = document.getElementById("statusSelect");
+const cancelBtn = document.getElementById("cancelBtn");
+const saveBtn = document.getElementById("saveBtn");
+const addTaskBtn = document.getElementById("addTaskBtn");
+
+let modalMode = "add"; // add | edit
+let editTaskId = null;
+
+function fillTierOptions(){
+  tierSelect.innerHTML="";
+  TIERS.forEach(t=>{
+    const opt=document.createElement("option");
+    opt.value=t.id;
+    opt.textContent=t.title;
+    tierSelect.appendChild(opt);
   });
+}
+fillTierOptions();
 
-  await saveToServer();
+function openModal(mode, task){
+  modalMode = mode;
+  modalError.style.display="none";
+
+  if(mode==="add"){
+    modalTitle.textContent="Add Task";
+    editTaskId = null;
+    taskInput.value="";
+    tierSelect.value="tier1";
+    statusSelect.value="ready";
+  } else {
+    modalTitle.textContent="Edit Task";
+    editTaskId = task.id;
+    taskInput.value = task.text;
+    tierSelect.value = task.tier;
+    statusSelect.value = task.status;
+  }
+
+  modal.style.display="block";
+  setTimeout(()=>taskInput.focus(), 50);
+}
+
+function closeModal(){
+  modal.style.display="none";
+}
+
+function saveModal(){
+  const text = (taskInput.value||"").trim();
+  if(!text){
+    modalError.textContent = "Type something. Telepathy isn’t enabled.";
+    modalError.style.display="block";
+    taskInput.focus();
+    return;
+  }
+
+  if(modalMode==="add"){
+    const newTask = {
+      id: "t_"+Date.now()+"_"+Math.floor(Math.random()*100000),
+      tier: tierSelect.value,
+      text,
+      status: statusSelect.value,
+      createdAt: Date.now()
+    };
+    tasks.push(newTask);
+    touchTier(newTask.tier);
+  } else {
+    const t = tasks.find(x=>x.id===editTaskId);
+    if(t){
+      const oldTier = t.tier;
+      t.text = text;
+      t.tier = tierSelect.value;
+      t.status = statusSelect.value;
+      touchTier(oldTier);
+      touchTier(t.tier);
+    }
+  }
+
+  saveAll();
+  closeModal();
   render();
-};
 
-loadFromServer();
+  // Scroll to the relevant tier after save
+  const dest = document.getElementById(tierSelect.value);
+  if(dest && dest.scrollIntoView) dest.scrollIntoView({behavior:"smooth"});
+}
+
+addTaskBtn.onclick = ()=>openModal("add");
+cancelBtn.onclick = closeModal;
+saveBtn.onclick = saveModal;
+
+taskInput.addEventListener("keydown", (e)=>{
+  if(e.key==="Enter") saveModal();
+  if(e.key==="Escape") closeModal();
+});
+modal.addEventListener("click", (e)=>{
+  if(e.target === modal) closeModal();
+});
+
+/* =========================
+   REMINDER TICK (keep it alive)
+   ========================= */
+render();
+// Re-check every 60 seconds while the page is open
+setInterval(()=>{ buildSavageBanner(); }, 60000);
 </script>
 </body>
 </html>
