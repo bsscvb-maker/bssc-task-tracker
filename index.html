@@ -291,19 +291,20 @@ function randPick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 /* =========================
    STATE LOAD
    ========================= */
-function loadJSON(key, fallback){
-  try{
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  }catch(e){ return fallback; }
+async function loadFromServer(){
+  const res = await fetch("https://script.google.com/macros/s/AKfycbyCVOwhCtWJX2X7bQE9dVNKgtVt-TBt8HTioqFf9Xk1EY-XM8joKX9GS5a0gAzvwouZgw/exec");
+  const data = await res.json();
+  tasks = data;
+  render();
 }
 
-let tasks = loadJSON(STORAGE.TASKS, null);
-let touched = loadJSON(STORAGE.TOUCHED, {});
-let naggedDate = loadJSON(STORAGE.NAGGED, {});
-let snoozeUntil = loadJSON(STORAGE.SNOOZE, {});
-let logs = loadJSON(STORAGE.LOGS, []);
-let msgHist = loadJSON(STORAGE.MSGHIST, {}); // tierId -> [recent message strings]
+let tasks = [];
+let touched = {};
+let naggedDate = {};
+let snoozeUntil = {};
+let logs = [];
+let msgHist = {};
+
 
 // Bootstrap tasks once if empty
 if(!tasks || !Array.isArray(tasks) || tasks.length === 0){
@@ -327,13 +328,14 @@ if(!tasks || !Array.isArray(tasks) || tasks.length === 0){
   });
 })();
 
-function saveAll(){
-  localStorage.setItem(STORAGE.TASKS, JSON.stringify(tasks));
-  localStorage.setItem(STORAGE.TOUCHED, JSON.stringify(touched));
-  localStorage.setItem(STORAGE.NAGGED, JSON.stringify(naggedDate));
-  localStorage.setItem(STORAGE.SNOOZE, JSON.stringify(snoozeUntil));
-  localStorage.setItem(STORAGE.LOGS, JSON.stringify(logs));
-  localStorage.setItem(STORAGE.MSGHIST, JSON.stringify(msgHist));
+async function saveAll(){
+  await fetch("https://script.google.com/macros/s/AKfycbyCVOwhCtWJX2X7bQE9dVNKgtVt-TBt8HTioqFf9Xk1EY-XM8joKX9GS5a0gAzvwouZgw/exec", {
+    method: "POST",
+    body: new URLSearchParams({
+      action: "saveAll",
+      data: JSON.stringify({ tasks })
+    })
+  });
 }
 
 /* =========================
@@ -713,9 +715,10 @@ modal.addEventListener("click", (e)=>{
 /* =========================
    REMINDER TICK (keep it alive)
    ========================= */
-render();
+loadFromServer();
 // Re-check every 60 seconds while the page is open
 setInterval(()=>{ buildSavageBanner(); }, 60000);
 </script>
 </body>
 </html>
+
