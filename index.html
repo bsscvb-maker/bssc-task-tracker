@@ -279,9 +279,7 @@ const ROAST = {
   tier4: [
     "Tier 4 sitting there like a neglected haircut appointment.",
     "Brand work ignored = redo everything later. Pick your pain.",
-    "Tier 4 overdue. This is how you end up with ‘random’ brand
-    ''
-    ]ing."
+    "Tier 4 overdue. This is how you end up with 'random branding.'"
   ],
   tier5: [
     "Tier 5 has been ignored so long it’s basically a historical site.",
@@ -289,6 +287,7 @@ const ROAST = {
     "Tier 5 is still waiting. Patient little thing, isn’t it?"
   ]
 };
+
 
 function todayKey(){ return new Date().toDateString(); }
 function stamp(){
@@ -303,7 +302,7 @@ function randPick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
    ========================= */
 async function loadFromServer(){
   try{
-    const res = await fetch("https://script.google.com/macros/s/AKfycbyCVOwhCtWJX2X7bQE9dVNKgtVt-TBt8HTioqFf9Xk1EY-XM8joKX9GS5a0gAzvwouZgw/exec?action=getAll")
+    const res = await fetch("https://script.google.com/macros/s/AKfycbyCVOwhCtWJX2X7bQE9dVNKgtVt-TBt8HTioqFf9Xk1EY-XM8joKX9GS5a0gAzvwouZgw/exec?action=getAll");
 
     const data = await res.json();
 
@@ -747,6 +746,7 @@ setInterval(()=>{ buildSavageBanner(); }, 60000);
 </script>
 </body>
 </html>
+
 
 
 
