@@ -300,22 +300,31 @@ async function loadFromServer(){
       tasks = data;
     } else {
       console.warn("No tasks returned from server. Using defaults.");
+      tasks = DEFAULT_TASKS.map((t, idx)=>({
+        id: "t_"+Date.now()+"_"+idx,
+        tier: t[0],
+        text: t[1],
+        status: "ready",
+        createdAt: Date.now()
+      }));
     }
 
     render();
+
   } catch(err){
     console.error("Fetch failed:", err);
+
+    tasks = DEFAULT_TASKS.map((t, idx)=>({
+      id: "t_"+Date.now()+"_"+idx,
+      tier: t[0],
+      text: t[1],
+      status: "ready",
+      createdAt: Date.now()
+    }));
+
     render();
   }
 }
-
-
-let tasks = [];
-let touched = {};
-let naggedDate = {};
-let snoozeUntil = {};
-let logs = [];
-let msgHist = {};
 
 
 // Bootstrap tasks once if empty
@@ -733,6 +742,7 @@ setInterval(()=>{ buildSavageBanner(); }, 60000);
 </script>
 </body>
 </html>
+
 
 
 
