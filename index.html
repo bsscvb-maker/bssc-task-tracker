@@ -69,6 +69,7 @@
   }
 
   .status-ready{color:#ff4d4d;font-weight:800;}
+  .status-working{color:#4da6ff;font-weight:800;}
   .status-waiting{color:#ffd24d;font-weight:800;}
   .status-done{color:#5cff5c;font-weight:800;}
 
@@ -128,7 +129,7 @@
 <header>
   <div>
     <h1>BSSC Task Tracker</h1>
-    <div class="sub">Todd Online Cloud Sync Enabled • Google Sheets Backend • Ready / Waiting / Done • Accountability enabled</div>
+    <div class="sub">Todd Online Cloud Sync Enabled • Google Sheets Backend • Ready / Working / Waiting / Done • Accountability enabled</div>
   </div>
   <button id="addTaskBtn">Add Task</button>
 </header>
@@ -138,6 +139,7 @@
   <div class="note">
     <b>Statuses:</b>
     <span class="status-ready">READY</span> = actionable now •
+    <span class="status-working">WORKING</span> = currently in progress •
     <span class="status-waiting">WAITING</span> = blocked (pauses nagging) •
     <span class="status-done">DONE</span> = finished (still visible, can undo)<br><br>
     <b>Nag cadence:</b> Tier 1 daily • Tier 2 daily • Tier 3 every other day • Tier 4 every 2 days • Tier 5 weekly
@@ -168,6 +170,7 @@
     <label for="statusSelect">Status</label>
     <select id="statusSelect">
       <option value="ready">READY</option>
+      <option value="working">WORKING</option>
       <option value="waiting">WAITING</option>
       <option value="done">DONE</option>
     </select>
@@ -373,6 +376,7 @@ function touchTier(tierId){
 
 function statusClass(status){
   if(status==="ready") return "status-ready";
+  if(status==="working") return "status-working";
   if(status==="waiting") return "status-waiting";
   return "status-done";
 }
@@ -509,7 +513,7 @@ function render(){
 const tierTasks = tasks
   .filter(x => x.tier === tier.id)
   .sort((a, b) => {
-    const order = { ready: 0, waiting: 1, done: 2 };
+    const order = { ready: 0, working: 1, waiting: 2, done: 3 };
     return order[a.status] - order[b.status];
   });
     tierTasks.forEach(task=>{
@@ -534,7 +538,7 @@ const tierTasks = tasks
 
       // Status dropdown
       const status = document.createElement("select");
-      ["ready","waiting","done"].forEach(s=>{
+      ["ready","working","waiting","done"].forEach(s=>{
         const opt=document.createElement("option");
         opt.value=s;
         opt.textContent=s.toUpperCase();
