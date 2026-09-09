@@ -211,7 +211,7 @@ const TIERS = [
   { id:"tier3", title:"🟡 Tier 3 — Revenue & Program Growth", cadenceDays:2 },
   { id:"tier4", title:"🔵 Tier 4 — Brand / Identity", cadenceDays:2 },
   { id:"tier5", title:"🟣 Tier 5 — Content / Nice-to-Have", cadenceDays:7 },
-  { id:"parked",title:"⚪ Parked / Deprecated", cadenceDays:null }
+  { id:"parked",title:"🟢 Done", cadenceDays:null }
 ];
 
 // Default tasks (your original tier list)
@@ -505,7 +505,7 @@ function render(){
     card.id = tier.id;
 
     const hint = tier.cadenceDays==null
-      ? "Parked items never trigger reminders."
+      ? "Done items never trigger reminders."
       : `Reminder cadence: every ${tier.cadenceDays} day(s) if READY work exists.`;
 
     card.innerHTML = `<h2>${tier.title}</h2><div class="tierHint">${hint}</div>`;
