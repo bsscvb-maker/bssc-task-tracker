@@ -525,7 +525,13 @@ const tierTasks = tasks
       cb.type="checkbox";
       cb.checked = (task.status==="done");
       cb.onchange = ()=>{
+        const oldTier = task.tier;
         task.status = cb.checked ? "done" : "ready";
+
+        // A completed task belongs in the Done section, not in its old priority tier.
+        if(cb.checked) task.tier = "parked";
+
+        touchTier(oldTier);
         touchTier(task.tier);
         saveAll();
         render();
