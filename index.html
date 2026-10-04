@@ -27,6 +27,19 @@
     padding:12px 14px;margin:0 0 14px;font-size:12px;line-height:1.45;opacity:.92;
   }
 
+  /* ===== Task count sidebar ===== */
+  .pageLayout{max-width:1800px;margin:auto;display:grid;grid-template-columns:minmax(0,1200px) 240px;gap:24px;justify-content:center;padding:18px;}
+  .wrap{max-width:none;min-width:0;width:auto;margin:0;padding:0;}
+  .taskSummary{align-self:start;position:sticky;top:100px;border:1px solid #333;border-radius:14px;background:#111;padding:16px;}
+  .taskSummary h2{font-size:17px;margin:0 0 14px;}
+  .summaryRow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid #292929;color:#fff;text-decoration:none;font-size:13px;}
+  .summaryRow:hover{color:#4da6ff;}
+  .summaryRow strong{font-size:18px;}
+  .summaryTotal{display:flex;justify-content:space-between;gap:12px;margin-top:14px;font-size:14px;font-weight:700;}
+  .tier{scroll-margin-top:100px;}
+  @media(max-width:1500px){.pageLayout{grid-template-columns:minmax(0,1200px);} .taskSummary{position:static;grid-row:1;} #tierCounts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 18px;}}
+  @media(max-width:650px){.pageLayout{padding:12px;gap:14px;} #tierCounts{grid-template-columns:repeat(2,minmax(0,1fr));}}
+
   /* ===== Savage Banner ===== */
   #savageZone{display:none;margin:0 0 14px;}
   .savage{
@@ -134,6 +147,7 @@
   <button id="addTaskBtn">Add Task</button>
 </header>
 
+<div class="pageLayout">
 <div class="wrap">
 
   <div class="note">
@@ -153,6 +167,13 @@
     <h3>Hall of Shame</h3>
     <div id="logs"></div>
   </div>
+</div>
+
+<aside class="taskSummary" aria-labelledby="summaryTitle">
+  <h2 id="summaryTitle">Task Counts</h2>
+  <div id="tierCounts"></div>
+  <div class="summaryTotal"><span>Total Items</span><strong id="totalCount">0</strong></div>
+</aside>
 </div>
 
 <!-- Add/Edit Modal -->
@@ -521,7 +542,26 @@ function buildSavageBanner(){
 /* =========================
    RENDER BOARD
    ========================= */
+function renderTaskCounts(){
+  const summary = document.getElementById("tierCounts");
+  summary.replaceChildren();
+  TIERS.forEach(tier=>{
+    const row = document.createElement("a");
+    row.className = "summaryRow";
+    row.href = "#" + tier.id;
+    row.title = tier.title;
+    const label = document.createElement("span");
+    label.textContent = tier.id === "parked" ? "🟢 Done" : tier.title.split(" — ")[0];
+    const count = document.createElement("strong");
+    count.textContent = tasks.filter(task => task.tier === tier.id).length;
+    row.append(label, count);
+    summary.appendChild(row);
+  });
+  document.getElementById("totalCount").textContent = tasks.length;
+}
+
 function render(){
+  renderTaskCounts();
   buildSavageBanner();
 
   const board = document.getElementById("board");
